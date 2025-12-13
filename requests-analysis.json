@@ -1,0 +1,1876 @@
+{
+  "analysis_date": "2025-12-13T15:51:49.033173",
+  "metadata": {
+    "codebase_path": "/home/al3x/src/requests",
+    "service_name": "unknown",
+    "total_files_analyzed": 27,
+    "total_files_skipped": 9,
+    "module_count": 4,
+    "modules": [
+      {
+        "name": "tests",
+        "path": "tests",
+        "description": "Module: tests"
+      },
+      {
+        "name": "src",
+        "path": "src",
+        "description": "Module: src"
+      },
+      {
+        "name": "ext",
+        "path": "ext",
+        "description": "Module: ext"
+      },
+      {
+        "name": "docs",
+        "path": "docs",
+        "description": "Module: docs"
+      }
+    ]
+  },
+  "summary": {
+    "total_operations": 0,
+    "total_files_with_db": 0,
+    "severity_score": 0,
+    "violation_count_read": 0,
+    "violation_count_write": 0,
+    "collections_count": 0,
+    "total_functions": 299,
+    "avg_complexity": 3.17,
+    "max_complexity": 21,
+    "high_complexity_count": 14,
+    "simple_functions": 252,
+    "complex_functions": 14,
+    "avg_mi": 73.42,
+    "total_files": 27,
+    "high_maintainability": 18,
+    "low_maintainability": 0,
+    "low_mi_count": 0,
+    "total_sloc": 3451,
+    "file_count": 27,
+    "avg_file_size": 127.8,
+    "comment_ratio": 11.71,
+    "large_files_count": 2,
+    "large_functions_count": 14,
+    "total_test_files": 0,
+    "unit_percentage": 0.0,
+    "integration_percentage": 0.0,
+    "testability_score": 100.0,
+    "untestable_functions": 0,
+    "total_modules": 4,
+    "avg_instability": 0.0,
+    "stable_modules_count": 4,
+    "unstable_modules_count": 0,
+    "high_fanout_count": 0,
+    "total_classes": 22,
+    "avg_lcom": 1.59,
+    "avg_wmc": 23.5,
+    "god_classes_count": 6,
+    "low_cohesion_count": 1,
+    "total_smells": 29,
+    "long_methods": 14,
+    "long_parameter_lists": 8,
+    "deep_nesting": 7,
+    "duplicate_code": 0,
+    "total_remediation_hours": 47.0,
+    "total_remediation_days": 5.9,
+    "debt_ratio": 13.62,
+    "sqale_rating": "C",
+    "overall_health": 82.9,
+    "best_module": "docs",
+    "best_score": 92.5,
+    "worst_module": "src",
+    "worst_score": 72.9
+  },
+  "db_coupling": {
+    "total_operations": 0,
+    "total_files": 0,
+    "total_files_with_db": 0,
+    "severity_score": 0,
+    "collections_accessed": {},
+    "by_module": {},
+    "top_coupled_files": [],
+    "violations": []
+  },
+  "complexity": {
+    "total_functions": 299,
+    "avg_complexity": 3.17056856187291,
+    "max_complexity": 21,
+    "max_complexity_function": {
+      "name": "_encode_files",
+      "file": "/home/al3x/src/requests/src/requests/models.py",
+      "module": "src",
+      "complexity": 21
+    },
+    "distribution": {
+      "simple_1_5": 252,
+      "moderate_6_10": 33,
+      "complex_11_20": 13,
+      "very_complex_21_plus": 1
+    },
+    "by_module": {
+      "tests": {
+        "total_functions": 21,
+        "avg_complexity": 1.9523809523809523,
+        "max_complexity": 4,
+        "high_complexity_count": 0
+      },
+      "src": {
+        "total_functions": 277,
+        "avg_complexity": 3.270758122743682,
+        "max_complexity": 21,
+        "high_complexity_count": 14
+      },
+      "docs": {
+        "total_functions": 1,
+        "avg_complexity": 1.0,
+        "max_complexity": 1,
+        "high_complexity_count": 0
+      }
+    },
+    "high_complexity_functions": [
+      {
+        "function": "_encode_files",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 137,
+        "complexity": 21,
+        "category": "very_complex",
+        "class_name": "RequestEncodingMixin"
+      },
+      {
+        "function": "build_digest_header",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "line": 126,
+        "complexity": 19,
+        "category": "complex",
+        "class_name": "HTTPDigestAuth"
+      },
+      {
+        "function": "send",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "line": 590,
+        "complexity": 19,
+        "category": "complex",
+        "class_name": "HTTPAdapter"
+      },
+      {
+        "function": "super_len",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "line": 136,
+        "complexity": 18,
+        "category": "complex",
+        "class_name": null
+      },
+      {
+        "function": "should_bypass_proxies",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "line": 755,
+        "complexity": 17,
+        "category": "complex",
+        "class_name": null
+      },
+      {
+        "function": "prepare_url",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 409,
+        "complexity": 17,
+        "category": "complex",
+        "class_name": "PreparedRequest"
+      },
+      {
+        "function": "prepare_body",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 494,
+        "complexity": 17,
+        "category": "complex",
+        "class_name": "PreparedRequest"
+      },
+      {
+        "function": "resolve_redirects",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "line": 159,
+        "complexity": 15,
+        "category": "complex",
+        "class_name": "SessionRedirectMixin"
+      },
+      {
+        "function": "cert_verify",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "line": 280,
+        "complexity": 14,
+        "category": "complex",
+        "class_name": "HTTPAdapter"
+      },
+      {
+        "function": "RequestEncodingMixin",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 84,
+        "complexity": 13,
+        "category": "complex",
+        "class_name": null
+      },
+      {
+        "function": "get_netrc_auth",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "line": 207,
+        "complexity": 11,
+        "category": "complex",
+        "class_name": null
+      },
+      {
+        "function": "guess_json_utf",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "line": 947,
+        "complexity": 11,
+        "category": "complex",
+        "class_name": null
+      },
+      {
+        "function": "_encode_params",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 107,
+        "complexity": 11,
+        "category": "complex",
+        "class_name": "RequestEncodingMixin"
+      },
+      {
+        "function": "send",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "line": 673,
+        "complexity": 11,
+        "category": "complex",
+        "class_name": "Session"
+      }
+    ],
+    "per_file": [
+      {
+        "file": "/home/al3x/src/requests/tests/utils.py",
+        "module": "tests",
+        "avg_complexity": 3.0,
+        "max_complexity": 3,
+        "function_count": 1
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/conftest.py",
+        "module": "tests",
+        "avg_complexity": 1.0,
+        "max_complexity": 1,
+        "function_count": 4
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/compat.py",
+        "module": "tests",
+        "avg_complexity": 1.0,
+        "max_complexity": 1,
+        "function_count": 1
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/testserver/server.py",
+        "module": "tests",
+        "avg_complexity": 2.2,
+        "max_complexity": 4,
+        "function_count": 15
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "module": "src",
+        "avg_complexity": 4.5476190476190474,
+        "max_complexity": 18,
+        "function_count": 42
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/api.py",
+        "module": "src",
+        "avg_complexity": 1.0,
+        "max_complexity": 1,
+        "function_count": 8
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/hooks.py",
+        "module": "src",
+        "avg_complexity": 4.0,
+        "max_complexity": 6,
+        "function_count": 2
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "module": "src",
+        "avg_complexity": 4.458333333333333,
+        "max_complexity": 21,
+        "function_count": 48
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/cookies.py",
+        "module": "src",
+        "avg_complexity": 2.3773584905660377,
+        "max_complexity": 9,
+        "function_count": 53
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/help.py",
+        "module": "src",
+        "avg_complexity": 4.333333333333333,
+        "max_complexity": 6,
+        "function_count": 3
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/status_codes.py",
+        "module": "src",
+        "avg_complexity": 6.0,
+        "max_complexity": 6,
+        "function_count": 1
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/structures.py",
+        "module": "src",
+        "avg_complexity": 1.375,
+        "max_complexity": 2,
+        "function_count": 16
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "module": "src",
+        "avg_complexity": 4.066666666666666,
+        "max_complexity": 15,
+        "function_count": 30
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "module": "src",
+        "avg_complexity": 2.9473684210526314,
+        "max_complexity": 19,
+        "function_count": 19
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/compat.py",
+        "module": "src",
+        "avg_complexity": 4.0,
+        "max_complexity": 4,
+        "function_count": 1
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/__init__.py",
+        "module": "src",
+        "avg_complexity": 6.5,
+        "max_complexity": 10,
+        "function_count": 2
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/exceptions.py",
+        "module": "src",
+        "avg_complexity": 1.2857142857142858,
+        "max_complexity": 5,
+        "function_count": 28
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "module": "src",
+        "avg_complexity": 3.727272727272727,
+        "max_complexity": 19,
+        "function_count": 22
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/_internal_utils.py",
+        "module": "src",
+        "avg_complexity": 2.5,
+        "max_complexity": 3,
+        "function_count": 2
+      },
+      {
+        "file": "/home/al3x/src/requests/docs/_themes/flask_theme_support.py",
+        "module": "docs",
+        "avg_complexity": 1.0,
+        "max_complexity": 1,
+        "function_count": 1
+      }
+    ]
+  },
+  "maintainability": {
+    "avg_mi": 73.42438643389697,
+    "total_files": 27,
+    "distribution": {
+      "high_65_100": 18,
+      "moderate_20_64": 9,
+      "low_0_19": 0
+    },
+    "by_module": {
+      "root": {
+        "avg_mi": 67.34747850355629,
+        "file_count": 1,
+        "low_mi_count": 0
+      },
+      "tests": {
+        "avg_mi": 82.85770253504293,
+        "file_count": 6,
+        "low_mi_count": 0
+      },
+      "src": {
+        "avg_mi": 67.66470777785578,
+        "file_count": 18,
+        "low_mi_count": 0
+      },
+      "docs": {
+        "avg_mi": 100.0,
+        "file_count": 2,
+        "low_mi_count": 0
+      }
+    },
+    "low_maintainability_files": [],
+    "per_file": [
+      {
+        "file": "/home/al3x/src/requests/setup.py",
+        "module": "root",
+        "mi_score": 67.34747850355629,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/utils.py",
+        "module": "tests",
+        "mi_score": 69.19993388914534,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/conftest.py",
+        "module": "tests",
+        "mi_score": 75.60085750918277,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/compat.py",
+        "module": "tests",
+        "mi_score": 100.0,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/__init__.py",
+        "module": "tests",
+        "mi_score": 100.0,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/testserver/server.py",
+        "module": "tests",
+        "mi_score": 52.34542381192951,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/testserver/__init__.py",
+        "module": "tests",
+        "mi_score": 100.0,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "module": "src",
+        "mi_score": 25.184109601732533,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/api.py",
+        "module": "src",
+        "mi_score": 100.0,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/hooks.py",
+        "module": "src",
+        "mi_score": 93.00081741579876,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "module": "src",
+        "mi_score": 21.690865978957028,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/cookies.py",
+        "module": "src",
+        "mi_score": 39.75748112693178,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/help.py",
+        "module": "src",
+        "mi_score": 59.53820785726878,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/certs.py",
+        "module": "src",
+        "mi_score": 64.3595984114544,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/status_codes.py",
+        "module": "src",
+        "mi_score": 84.22065204509254,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/packages.py",
+        "module": "src",
+        "mi_score": 86.66611985445543,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/structures.py",
+        "module": "src",
+        "mi_score": 81.76895263172229,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/__version__.py",
+        "module": "src",
+        "mi_score": 100.0,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "module": "src",
+        "mi_score": 38.091623642484,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "module": "src",
+        "mi_score": 47.397414634486296,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/compat.py",
+        "module": "src",
+        "mi_score": 80.40496947207079,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/__init__.py",
+        "module": "src",
+        "mi_score": 71.18108015146586,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/exceptions.py",
+        "module": "src",
+        "mi_score": 77.2498807995156,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "module": "src",
+        "mi_score": 47.45296637796813,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/_internal_utils.py",
+        "module": "src",
+        "mi_score": 100.0,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/docs/conf.py",
+        "module": "docs",
+        "mi_score": 100.0,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/requests/docs/_themes/flask_theme_support.py",
+        "module": "docs",
+        "mi_score": 100.0,
+        "rank": "A"
+      }
+    ]
+  },
+  "code_size": {
+    "total_sloc": 3451,
+    "total_comments": 760,
+    "total_blank": 1255,
+    "total_loc": 6490,
+    "comment_ratio": 11.710323574730355,
+    "file_count": 27,
+    "file_size_distribution": {
+      "small_0_100": 18,
+      "medium_101_500": 7,
+      "large_501_plus": 2
+    },
+    "by_module": {
+      "root": {
+        "total_sloc": 95,
+        "file_count": 1,
+        "avg_file_size": 95.0,
+        "comment_ratio": 1.8691588785046727,
+        "total_comments": 2,
+        "total_loc": 107
+      },
+      "tests": {
+        "total_sloc": 214,
+        "file_count": 6,
+        "avg_file_size": 35.666666666666664,
+        "comment_ratio": 5.555555555555555,
+        "total_comments": 16,
+        "total_loc": 288
+      },
+      "src": {
+        "total_sloc": 2984,
+        "file_count": 18,
+        "avg_file_size": 165.77777777777777,
+        "comment_ratio": 8.198470567312823,
+        "total_comments": 461,
+        "total_loc": 5623
+      },
+      "docs": {
+        "total_sloc": 158,
+        "file_count": 2,
+        "avg_file_size": 79.0,
+        "comment_ratio": 59.53389830508474,
+        "total_comments": 281,
+        "total_loc": 472
+      }
+    },
+    "large_files": [
+      {
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "module": "src",
+        "sloc": 597,
+        "comments": 122,
+        "comment_ratio": 11.742059672762272
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "module": "src",
+        "sloc": 576,
+        "comments": 95,
+        "comment_ratio": 8.747697974217312
+      }
+    ],
+    "large_functions": [
+      {
+        "function": "resolve_redirects",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "sloc": 122,
+        "line": 159
+      },
+      {
+        "function": "build_digest_header",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "sloc": 109,
+        "line": 126
+      },
+      {
+        "function": "send",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "sloc": 107,
+        "line": 590
+      },
+      {
+        "function": "request",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "sloc": 92,
+        "line": 500
+      },
+      {
+        "function": "prepare_body",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "sloc": 77,
+        "line": 494
+      },
+      {
+        "function": "send",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "sloc": 76,
+        "line": 673
+      },
+      {
+        "function": "prepare_url",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "sloc": 73,
+        "line": 409
+      },
+      {
+        "function": "super_len",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "sloc": 69,
+        "line": 136
+      },
+      {
+        "function": "_encode_files",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "sloc": 67,
+        "line": 137
+      },
+      {
+        "function": "__init__",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "sloc": 60,
+        "line": 390
+      },
+      {
+        "function": "should_bypass_proxies",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "sloc": 59,
+        "line": 755
+      },
+      {
+        "function": "iter_content",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "sloc": 57,
+        "line": 799
+      },
+      {
+        "function": "info",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/help.py",
+        "sloc": 57,
+        "line": 69
+      },
+      {
+        "function": "cert_verify",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "sloc": 55,
+        "line": 280
+      }
+    ],
+    "low_documentation": [
+      {
+        "file": "/home/al3x/src/requests/src/requests/help.py",
+        "module": "src",
+        "comment_ratio": 1.4925373134328357,
+        "sloc": 101
+      },
+      {
+        "file": "/home/al3x/src/requests/setup.py",
+        "module": "root",
+        "comment_ratio": 1.8691588785046727,
+        "sloc": 95
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/cookies.py",
+        "module": "src",
+        "comment_ratio": 2.3172905525846703,
+        "sloc": 292
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "module": "src",
+        "comment_ratio": 2.586206896551724,
+        "sloc": 378
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/status_codes.py",
+        "module": "src",
+        "comment_ratio": 3.90625,
+        "sloc": 100
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/testserver/server.py",
+        "module": "tests",
+        "comment_ratio": 4.545454545454546,
+        "sloc": 137
+      }
+    ],
+    "per_file": [
+      {
+        "file": "/home/al3x/src/requests/setup.py",
+        "module": "root",
+        "sloc": 95,
+        "comment_ratio": 1.8691588785046727
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/utils.py",
+        "module": "tests",
+        "sloc": 15,
+        "comment_ratio": 0.0
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/conftest.py",
+        "module": "tests",
+        "sloc": 37,
+        "comment_ratio": 6.896551724137931
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/compat.py",
+        "module": "tests",
+        "sloc": 19,
+        "comment_ratio": 0.0
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/__init__.py",
+        "module": "tests",
+        "sloc": 6,
+        "comment_ratio": 28.57142857142857
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/testserver/server.py",
+        "module": "tests",
+        "sloc": 137,
+        "comment_ratio": 4.545454545454546
+      },
+      {
+        "file": "/home/al3x/src/requests/tests/testserver/__init__.py",
+        "module": "tests",
+        "sloc": 0,
+        "comment_ratio": 0.0
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/utils.py",
+        "module": "src",
+        "sloc": 576,
+        "comment_ratio": 8.747697974217312
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/api.py",
+        "module": "src",
+        "sloc": 19,
+        "comment_ratio": 1.910828025477707
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/hooks.py",
+        "module": "src",
+        "sloc": 14,
+        "comment_ratio": 3.0303030303030303
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "module": "src",
+        "sloc": 597,
+        "comment_ratio": 11.742059672762272
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/cookies.py",
+        "module": "src",
+        "sloc": 292,
+        "comment_ratio": 2.3172905525846703
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/help.py",
+        "module": "src",
+        "sloc": 101,
+        "comment_ratio": 1.4925373134328357
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/certs.py",
+        "module": "src",
+        "sloc": 3,
+        "comment_ratio": 5.88235294117647
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/status_codes.py",
+        "module": "src",
+        "sloc": 100,
+        "comment_ratio": 3.90625
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/packages.py",
+        "module": "src",
+        "sloc": 15,
+        "comment_ratio": 17.391304347826086
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/structures.py",
+        "module": "src",
+        "sloc": 40,
+        "comment_ratio": 5.05050505050505
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/__version__.py",
+        "module": "src",
+        "sloc": 10,
+        "comment_ratio": 21.428571428571427
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "module": "src",
+        "sloc": 406,
+        "comment_ratio": 14.440433212996389
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "module": "src",
+        "sloc": 205,
+        "comment_ratio": 8.9171974522293
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/compat.py",
+        "module": "src",
+        "sloc": 60,
+        "comment_ratio": 17.92452830188679
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/__init__.py",
+        "module": "src",
+        "sloc": 104,
+        "comment_ratio": 11.41304347826087
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/exceptions.py",
+        "module": "src",
+        "sloc": 39,
+        "comment_ratio": 0.6622516556291391
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "module": "src",
+        "sloc": 378,
+        "comment_ratio": 2.586206896551724
+      },
+      {
+        "file": "/home/al3x/src/requests/src/requests/_internal_utils.py",
+        "module": "src",
+        "sloc": 25,
+        "comment_ratio": 0.0
+      },
+      {
+        "file": "/home/al3x/src/requests/docs/conf.py",
+        "module": "docs",
+        "sloc": 85,
+        "comment_ratio": 55.69948186528497
+      },
+      {
+        "file": "/home/al3x/src/requests/docs/_themes/flask_theme_support.py",
+        "module": "docs",
+        "sloc": 73,
+        "comment_ratio": 76.74418604651163
+      }
+    ]
+  },
+  "tests": {
+    "total_test_files": 0,
+    "unit_test_files": 0,
+    "integration_test_files": 0,
+    "total_test_functions": 0,
+    "unit_test_functions": 0,
+    "integration_test_functions": 0,
+    "test_ratio": {
+      "unit_percentage": 0.0,
+      "integration_percentage": 0.0
+    },
+    "by_module": {},
+    "testability": {
+      "total_functions": 184,
+      "functions_with_db_access": 0,
+      "functions_with_business_logic": 114,
+      "functions_mixing_both": 0,
+      "testability_score": 100.0,
+      "untestable_functions": []
+    },
+    "test_details": []
+  },
+  "module_coupling": {
+    "total_modules": 4,
+    "avg_afferent_coupling": 0.0,
+    "avg_efferent_coupling": 0.0,
+    "avg_instability": 0.0,
+    "per_module": {
+      "tests": {
+        "module": "tests",
+        "afferent_coupling": 0,
+        "efferent_coupling": 0,
+        "instability": 0.0,
+        "stability_category": "stable",
+        "imported_by": [],
+        "imports": []
+      },
+      "src": {
+        "module": "src",
+        "afferent_coupling": 0,
+        "efferent_coupling": 0,
+        "instability": 0.0,
+        "stability_category": "stable",
+        "imported_by": [],
+        "imports": []
+      },
+      "ext": {
+        "module": "ext",
+        "afferent_coupling": 0,
+        "efferent_coupling": 0,
+        "instability": 0.0,
+        "stability_category": "stable",
+        "imported_by": [],
+        "imports": []
+      },
+      "docs": {
+        "module": "docs",
+        "afferent_coupling": 0,
+        "efferent_coupling": 0,
+        "instability": 0.0,
+        "stability_category": "stable",
+        "imported_by": [],
+        "imports": []
+      }
+    },
+    "stable_modules": [
+      {
+        "module": "tests",
+        "instability": 0.0
+      },
+      {
+        "module": "src",
+        "instability": 0.0
+      },
+      {
+        "module": "ext",
+        "instability": 0.0
+      },
+      {
+        "module": "docs",
+        "instability": 0.0
+      }
+    ],
+    "unstable_modules": [],
+    "high_fanout_modules": [],
+    "dependency_graph": {
+      "nodes": [
+        "tests",
+        "src",
+        "ext",
+        "docs"
+      ],
+      "edges": []
+    }
+  },
+  "class_metrics": {
+    "total_classes": 22,
+    "avg_lcom": 1.5909090909090908,
+    "avg_wmc": 23.454545454545453,
+    "avg_methods_per_class": 7.7272727272727275,
+    "by_module": {
+      "tests": {
+        "total_classes": 2,
+        "avg_lcom": 1.5,
+        "avg_wmc": 11.5,
+        "god_classes_count": 0
+      },
+      "src": {
+        "total_classes": 20,
+        "avg_lcom": 1.6,
+        "avg_wmc": 24.65,
+        "god_classes_count": 6
+      }
+    },
+    "per_class": [
+      {
+        "class": "Server",
+        "module": "tests",
+        "file": "/home/al3x/src/requests/tests/testserver/server.py",
+        "line": 25,
+        "methods": 10,
+        "attributes": 16,
+        "lcom": 2,
+        "wmc": 20,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "TLSServer",
+        "module": "tests",
+        "file": "/home/al3x/src/requests/tests/testserver/server.py",
+        "line": 138,
+        "methods": 2,
+        "attributes": 7,
+        "lcom": 1,
+        "wmc": 3,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "RequestEncodingMixin",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 84,
+        "methods": 3,
+        "attributes": 1,
+        "lcom": 3,
+        "wmc": 35,
+        "cohesion_level": "low"
+      },
+      {
+        "class": "RequestHooksMixin",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 206,
+        "methods": 2,
+        "attributes": 1,
+        "lcom": 1,
+        "wmc": 8,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "Request",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 230,
+        "methods": 3,
+        "attributes": 11,
+        "lcom": 1,
+        "wmc": 9,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "PreparedRequest",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 313,
+        "methods": 13,
+        "attributes": 20,
+        "lcom": 2,
+        "wmc": 63,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "Response",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 640,
+        "methods": 22,
+        "attributes": 21,
+        "lcom": 2,
+        "wmc": 68,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "MockRequest",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/cookies.py",
+        "line": 23,
+        "methods": 14,
+        "attributes": 6,
+        "lcom": 2,
+        "wmc": 16,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "MockResponse",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/cookies.py",
+        "line": 103,
+        "methods": 3,
+        "attributes": 1,
+        "lcom": 1,
+        "wmc": 3,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "RequestsCookieJar",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/cookies.py",
+        "line": 176,
+        "methods": 24,
+        "attributes": 10,
+        "lcom": 2,
+        "wmc": 63,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "CaseInsensitiveDict",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/structures.py",
+        "line": 13,
+        "methods": 10,
+        "attributes": 4,
+        "lcom": 1,
+        "wmc": 14,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "LookupDict",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/structures.py",
+        "line": 83,
+        "methods": 4,
+        "attributes": 2,
+        "lcom": 1,
+        "wmc": 4,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "SessionRedirectMixin",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "line": 106,
+        "methods": 6,
+        "attributes": 9,
+        "lcom": 2,
+        "wmc": 45,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "Session",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "line": 356,
+        "methods": 19,
+        "attributes": 21,
+        "lcom": 2,
+        "wmc": 52,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "AuthBase",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "line": 69,
+        "methods": 1,
+        "attributes": 0,
+        "lcom": 1,
+        "wmc": 1,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "HTTPBasicAuth",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "line": 76,
+        "methods": 4,
+        "attributes": 2,
+        "lcom": 2,
+        "wmc": 4,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "HTTPProxyAuth",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "line": 99,
+        "methods": 1,
+        "attributes": 2,
+        "lcom": 1,
+        "wmc": 1,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "HTTPDigestAuth",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/auth.py",
+        "line": 107,
+        "methods": 8,
+        "attributes": 7,
+        "lcom": 2,
+        "wmc": 34,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "RequestException",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/exceptions.py",
+        "line": 12,
+        "methods": 1,
+        "attributes": 2,
+        "lcom": 1,
+        "wmc": 4,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "JSONDecodeError",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/exceptions.py",
+        "line": 31,
+        "methods": 2,
+        "attributes": 1,
+        "lcom": 2,
+        "wmc": 2,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "BaseAdapter",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "line": 113,
+        "methods": 3,
+        "attributes": 0,
+        "lcom": 1,
+        "wmc": 3,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "HTTPAdapter",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "line": 143,
+        "methods": 15,
+        "attributes": 17,
+        "lcom": 2,
+        "wmc": 64,
+        "cohesion_level": "moderate"
+      }
+    ],
+    "god_classes": [
+      {
+        "class": "Response",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 640,
+        "reasons": [
+          "22 methods",
+          "WMC 68"
+        ],
+        "severity": "high",
+        "methods": 22,
+        "wmc": 68,
+        "lcom": 2
+      },
+      {
+        "class": "HTTPAdapter",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/adapters.py",
+        "line": 143,
+        "reasons": [
+          "WMC 64"
+        ],
+        "severity": "high",
+        "methods": 15,
+        "wmc": 64,
+        "lcom": 2
+      },
+      {
+        "class": "PreparedRequest",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 313,
+        "reasons": [
+          "WMC 63"
+        ],
+        "severity": "high",
+        "methods": 13,
+        "wmc": 63,
+        "lcom": 2
+      },
+      {
+        "class": "RequestsCookieJar",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/cookies.py",
+        "line": 176,
+        "reasons": [
+          "24 methods",
+          "WMC 63"
+        ],
+        "severity": "high",
+        "methods": 24,
+        "wmc": 63,
+        "lcom": 2
+      },
+      {
+        "class": "Session",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/sessions.py",
+        "line": 356,
+        "reasons": [
+          "WMC 52"
+        ],
+        "severity": "high",
+        "methods": 19,
+        "wmc": 52,
+        "lcom": 2
+      },
+      {
+        "class": "RequestEncodingMixin",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "line": 84,
+        "reasons": [
+          "LCOM 3"
+        ],
+        "severity": "high",
+        "methods": 3,
+        "wmc": 35,
+        "lcom": 3
+      }
+    ],
+    "low_cohesion_classes": [
+      {
+        "class": "RequestEncodingMixin",
+        "module": "src",
+        "file": "/home/al3x/src/requests/src/requests/models.py",
+        "lcom": 3,
+        "methods": 3
+      }
+    ]
+  },
+  "code_smells": {
+    "total_smells": 29,
+    "by_module": {
+      "tests": {
+        "long_methods": 0,
+        "long_parameter_lists": 1,
+        "deep_nesting": 0,
+        "total_smells": 1
+      },
+      "src": {
+        "long_methods": 14,
+        "long_parameter_lists": 7,
+        "deep_nesting": 7,
+        "total_smells": 28
+      }
+    },
+    "long_methods": [
+      {
+        "type": "long_method",
+        "function": "resolve_redirects",
+        "sloc": 122,
+        "line": 159,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "build_digest_header",
+        "sloc": 109,
+        "line": 126,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "send",
+        "sloc": 107,
+        "line": 590,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "request",
+        "sloc": 92,
+        "line": 500,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "prepare_body",
+        "sloc": 77,
+        "line": 494,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "send",
+        "sloc": 76,
+        "line": 673,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "prepare_url",
+        "sloc": 73,
+        "line": 409,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "super_len",
+        "sloc": 69,
+        "line": 136,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "_encode_files",
+        "sloc": 67,
+        "line": 137,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "__init__",
+        "sloc": 60,
+        "line": 390,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "should_bypass_proxies",
+        "sloc": 59,
+        "line": 755,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "iter_content",
+        "sloc": 57,
+        "line": 799,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "info",
+        "sloc": 57,
+        "line": 69,
+        "module": "src"
+      },
+      {
+        "type": "long_method",
+        "function": "cert_verify",
+        "sloc": 55,
+        "line": 280,
+        "module": "src"
+      }
+    ],
+    "long_parameter_lists": [
+      {
+        "type": "long_parameter_list",
+        "function": "request",
+        "parameters": 17,
+        "param_names": [
+          "self",
+          "method",
+          "url",
+          "params",
+          "data",
+          "headers",
+          "cookies",
+          "files",
+          "auth",
+          "timeout",
+          "allow_redirects",
+          "proxies",
+          "hooks",
+          "stream",
+          "verify",
+          "cert",
+          "json"
+        ],
+        "line": 500,
+        "module": "src"
+      },
+      {
+        "type": "long_parameter_list",
+        "function": "__init__",
+        "parameters": 11,
+        "param_names": [
+          "self",
+          "method",
+          "url",
+          "headers",
+          "files",
+          "data",
+          "params",
+          "auth",
+          "cookies",
+          "hooks",
+          "json"
+        ],
+        "line": 258,
+        "module": "src"
+      },
+      {
+        "type": "long_parameter_list",
+        "function": "prepare",
+        "parameters": 11,
+        "param_names": [
+          "self",
+          "method",
+          "url",
+          "headers",
+          "files",
+          "data",
+          "params",
+          "auth",
+          "cookies",
+          "hooks",
+          "json"
+        ],
+        "line": 351,
+        "module": "src"
+      },
+      {
+        "type": "long_parameter_list",
+        "function": "resolve_redirects",
+        "parameters": 10,
+        "param_names": [
+          "self",
+          "resp",
+          "req",
+          "stream",
+          "timeout",
+          "verify",
+          "cert",
+          "proxies",
+          "yield_requests",
+          "**adapter_kwargs"
+        ],
+        "line": 159,
+        "module": "src"
+      },
+      {
+        "type": "long_parameter_list",
+        "function": "send",
+        "parameters": 7,
+        "param_names": [
+          "self",
+          "request",
+          "stream",
+          "timeout",
+          "verify",
+          "cert",
+          "proxies"
+        ],
+        "line": 119,
+        "module": "src"
+      },
+      {
+        "type": "long_parameter_list",
+        "function": "send",
+        "parameters": 7,
+        "param_names": [
+          "self",
+          "request",
+          "stream",
+          "timeout",
+          "verify",
+          "cert",
+          "proxies"
+        ],
+        "line": 590,
+        "module": "src"
+      },
+      {
+        "type": "long_parameter_list",
+        "function": "__init__",
+        "parameters": 6,
+        "param_names": [
+          "self",
+          "handler",
+          "host",
+          "port",
+          "requests_to_handle",
+          "wait_to_close_event"
+        ],
+        "line": 30,
+        "module": "tests"
+      },
+      {
+        "type": "long_parameter_list",
+        "function": "merge_environment_settings",
+        "parameters": 6,
+        "param_names": [
+          "self",
+          "url",
+          "proxies",
+          "stream",
+          "verify",
+          "cert"
+        ],
+        "line": 750,
+        "module": "src"
+      }
+    ],
+    "deep_nesting": [
+      {
+        "type": "deep_nesting",
+        "function": "_encode_params",
+        "max_depth": 6,
+        "line": 107,
+        "module": "src"
+      },
+      {
+        "type": "deep_nesting",
+        "function": "super_len",
+        "max_depth": 5,
+        "line": 136,
+        "module": "src"
+      },
+      {
+        "type": "deep_nesting",
+        "function": "should_bypass_proxies",
+        "max_depth": 5,
+        "line": 755,
+        "module": "src"
+      },
+      {
+        "type": "deep_nesting",
+        "function": "merge_cookies",
+        "max_depth": 5,
+        "line": 542,
+        "module": "src"
+      },
+      {
+        "type": "deep_nesting",
+        "function": "_find_no_duplicates",
+        "max_depth": 5,
+        "line": 386,
+        "module": "src"
+      },
+      {
+        "type": "deep_nesting",
+        "function": "build_digest_header",
+        "max_depth": 5,
+        "line": 126,
+        "module": "src"
+      },
+      {
+        "type": "deep_nesting",
+        "function": "send",
+        "max_depth": 5,
+        "line": 590,
+        "module": "src"
+      }
+    ],
+    "duplicate_code": []
+  },
+  "technical_debt": {
+    "total_remediation_hours": 47.0,
+    "total_remediation_days": 5.875,
+    "development_cost_hours": 345.1,
+    "debt_ratio": 13.619240799768182,
+    "sqale_rating": "C",
+    "debt_breakdown": {
+      "complexity": 7.5,
+      "maintainability": 0.0,
+      "db_coupling": 0.0,
+      "class_design": 27.0,
+      "code_smells": 12.5
+    },
+    "by_module": {
+      "root": {
+        "debt_hours": 0.0,
+        "debt_ratio": 0.0,
+        "sqale_rating": "A",
+        "sloc": 95
+      },
+      "tests": {
+        "debt_hours": 0.25,
+        "debt_ratio": 1.1682242990654206,
+        "sqale_rating": "A",
+        "sloc": 214
+      },
+      "src": {
+        "debt_hours": 43.25,
+        "debt_ratio": 14.493967828418228,
+        "sqale_rating": "C",
+        "sloc": 2984
+      },
+      "docs": {
+        "debt_hours": 0.0,
+        "debt_ratio": 0.0,
+        "sqale_rating": "A",
+        "sloc": 158
+      }
+    },
+    "top_debt_files": [],
+    "issue_costs": {
+      "very_high_complexity": {
+        "count": 1,
+        "total_hours": 1.0
+      },
+      "high_complexity": {
+        "count": 13,
+        "total_hours": 6.5
+      },
+      "low_maintainability": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "ownership_violation_write": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "ownership_violation_read": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "god_class": {
+        "count": 6,
+        "total_hours": 24.0
+      },
+      "low_cohesion": {
+        "count": 1,
+        "total_hours": 3.0
+      },
+      "long_method": {
+        "count": 14,
+        "total_hours": 7.0
+      },
+      "long_parameter_list": {
+        "count": 8,
+        "total_hours": 2.0
+      },
+      "deep_nesting": {
+        "count": 7,
+        "total_hours": 3.5
+      }
+    }
+  },
+  "module_health": {
+    "overall_health": 82.91961618745309,
+    "by_module": {
+      "tests": {
+        "module": "tests",
+        "score": 83.32943992845941,
+        "category": "excellent",
+        "components": {
+          "coupling": 100.0,
+          "complexity": 95.23809523809524,
+          "maintainability": 82.85770253504293,
+          "testability": 50.0,
+          "smells": 53.271028037383175,
+          "debt": 97.66355140186916
+        }
+      },
+      "src": {
+        "module": "src",
+        "score": 72.92940863389987,
+        "category": "good",
+        "components": {
+          "coupling": 100.0,
+          "complexity": 88.64620938628158,
+          "maintainability": 67.66470777785578,
+          "testability": 50.0,
+          "smells": 6.166219839142087,
+          "debt": 71.01206434316354
+        }
+      },
+      "docs": {
+        "module": "docs",
+        "score": 92.5,
+        "category": "excellent",
+        "components": {
+          "coupling": 100.0,
+          "complexity": 100.0,
+          "maintainability": 100.0,
+          "testability": 50.0,
+          "smells": 100.0,
+          "debt": 100.0
+        }
+      }
+    },
+    "module_rankings": [
+      {
+        "module": "docs",
+        "score": 92.5,
+        "category": "excellent"
+      },
+      {
+        "module": "tests",
+        "score": 83.32943992845941,
+        "category": "excellent"
+      },
+      {
+        "module": "src",
+        "score": 72.92940863389987,
+        "category": "good"
+      }
+    ]
+  }
+}

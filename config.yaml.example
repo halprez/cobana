@@ -1,0 +1,97 @@
+# COBANA Configuration File Example
+# Copy this file to config.yaml and customize for your project
+
+# Service identification (used for table ownership categorization)
+service_name: my_service
+
+# Module Detection Configuration
+module_detection:
+  # Method: "auto" (detect from folder structure) or "manual" (explicitly define)
+  method: auto
+
+  # Depth: Folder depth to treat as modules (1 = top-level folders)
+  depth: 1
+
+  # Manual module definitions (only used if method is "manual")
+  # manual_modules:
+  #   - name: "Claims Processing"
+  #     path: "claims"
+  #     description: "Inbound claim processing and validation"
+  #   - name: "Promotions Engine"
+  #     path: "promotions"
+  #     description: "Promotion matching and application"
+
+# Table Ownership Mapping
+# Maps database tables/collections to owning services
+# Used to identify coupling violations
+table_ownership:
+  # Tables owned by this service
+  my_service:
+    - my_table_1
+    - my_table_2
+
+  # Tables owned by other services
+  other_service:
+    - other_table_1
+    - other_table_2
+
+  # Shared tables (acceptable for multiple services to access)
+  shared:
+    - shared_table_1
+    - shared_table_2
+
+# Analysis Thresholds
+# Customize these based on your project's standards
+thresholds:
+  complexity: 10              # Cyclomatic complexity warning threshold
+  maintainability: 20         # Maintainability Index critical threshold (0-100 scale)
+  file_size: 500             # Large file threshold (lines of code)
+  function_size: 50          # Large function threshold (lines of code)
+  parameters: 5              # Long parameter list threshold
+  nesting: 4                 # Deep nesting threshold (levels)
+  class_methods: 20          # God class method count threshold
+  class_wmc: 50              # God class WMC (Weighted Methods per Class) threshold
+  class_lcom: 2              # Low cohesion threshold (LCOM score)
+  comment_ratio: 5           # Low documentation threshold (percentage)
+  module_fan_out: 10         # High coupling threshold (efferent coupling)
+
+# Files/Directories to Exclude from Analysis
+exclude_patterns:
+  - "*/test_*"              # Test files
+  - "*_test.py"             # Test files (alternative pattern)
+  - "*/__pycache__/*"       # Python cache
+  - "*/migrations/*"        # Database migrations
+  - "*.pyc"                 # Compiled Python
+  - ".git/*"                # Git directory
+  - "venv/*"                # Virtual environment
+  - "env/*"                 # Virtual environment
+  - ".venv/*"               # Virtual environment
+  - "node_modules/*"        # Node modules (if present)
+  - "build/*"               # Build artifacts
+  - "dist/*"                # Distribution artifacts
+
+# Analysis Options
+options:
+  analyze_tests: true         # Include test file analysis
+  detect_duplicates: true     # Detect duplicate code (can be slow on large codebases)
+  detect_dead_code: false     # Detect unused code (expensive, optional)
+  generate_charts: true       # Include charts in HTML report
+  module_dependency_graph: true  # Generate module dependency visualization
+
+# Remediation Cost Factors (hours per issue type)
+# Used to calculate technical debt
+# Customize based on your team's velocity
+remediation_costs:
+  very_high_complexity: 1.0       # Functions with complexity > 20
+  high_complexity: 0.5            # Functions with complexity 11-20
+  low_maintainability: 2.0        # Files with MI < 20
+  god_class: 4.0                  # Classes with >20 methods or WMC >50
+  god_method: 2.0                 # Methods with complexity > 20
+  long_method: 0.5                # Methods with >50 lines
+  long_parameter_list: 0.25       # Functions with >5 parameters
+  deep_nesting: 0.5               # Functions with nesting >4
+  duplicate_code: 1.0             # Duplicate code blocks
+  ownership_violation_write: 2.0  # Write to other service's tables
+  ownership_violation_read: 0.5   # Read from other service's tables
+  low_cohesion: 3.0              # Classes with LCOM > 2
+  high_fan_out: 1.0              # Modules with Ce > 10

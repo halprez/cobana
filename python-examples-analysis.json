@@ -1,0 +1,277 @@
+{
+  "analysis_date": "2025-12-13T15:49:44.437138",
+  "metadata": {
+    "codebase_path": "/home/al3x/src/python-examples",
+    "service_name": "unknown",
+    "total_files_analyzed": 0,
+    "total_files_skipped": 0,
+    "module_count": 2,
+    "modules": [
+      {
+        "name": "Status",
+        "path": "Status",
+        "description": "Module: Status"
+      },
+      {
+        "name": "notebooks",
+        "path": "notebooks",
+        "description": "Module: notebooks"
+      }
+    ]
+  },
+  "summary": {
+    "total_operations": 0,
+    "total_files_with_db": 0,
+    "severity_score": 0,
+    "violation_count_read": 0,
+    "violation_count_write": 0,
+    "collections_count": 0,
+    "total_functions": 0,
+    "avg_complexity": 0.0,
+    "max_complexity": 0,
+    "high_complexity_count": 0,
+    "simple_functions": 0,
+    "complex_functions": 0,
+    "avg_mi": 0.0,
+    "total_files": 0,
+    "high_maintainability": 0,
+    "low_maintainability": 0,
+    "low_mi_count": 0,
+    "total_sloc": 0,
+    "file_count": 0,
+    "avg_file_size": 0,
+    "comment_ratio": 0.0,
+    "large_files_count": 0,
+    "large_functions_count": 0,
+    "total_test_files": 0,
+    "unit_percentage": 0.0,
+    "integration_percentage": 0.0,
+    "testability_score": 100.0,
+    "untestable_functions": 0,
+    "total_modules": 2,
+    "avg_instability": 0.0,
+    "stable_modules_count": 2,
+    "unstable_modules_count": 0,
+    "high_fanout_count": 0,
+    "total_classes": 0,
+    "avg_lcom": 0.0,
+    "avg_wmc": 0.0,
+    "god_classes_count": 0,
+    "low_cohesion_count": 0,
+    "total_smells": 0,
+    "long_methods": 0,
+    "long_parameter_lists": 0,
+    "deep_nesting": 0,
+    "duplicate_code": 0,
+    "total_remediation_hours": 0.0,
+    "total_remediation_days": 0.0,
+    "debt_ratio": 0.0,
+    "sqale_rating": "A",
+    "overall_health": 0.0,
+    "best_module": null,
+    "worst_module": null
+  },
+  "db_coupling": {
+    "total_operations": 0,
+    "total_files": 0,
+    "total_files_with_db": 0,
+    "severity_score": 0,
+    "collections_accessed": {},
+    "by_module": {},
+    "top_coupled_files": [],
+    "violations": []
+  },
+  "complexity": {
+    "total_functions": 0,
+    "avg_complexity": 0.0,
+    "max_complexity": 0,
+    "max_complexity_function": null,
+    "distribution": {
+      "simple_1_5": 0,
+      "moderate_6_10": 0,
+      "complex_11_20": 0,
+      "very_complex_21_plus": 0
+    },
+    "by_module": {},
+    "high_complexity_functions": [],
+    "per_file": []
+  },
+  "maintainability": {
+    "avg_mi": 0.0,
+    "total_files": 0,
+    "distribution": {
+      "high_65_100": 0,
+      "moderate_20_64": 0,
+      "low_0_19": 0
+    },
+    "by_module": {},
+    "low_maintainability_files": [],
+    "per_file": []
+  },
+  "code_size": {
+    "total_sloc": 0,
+    "total_comments": 0,
+    "total_blank": 0,
+    "total_loc": 0,
+    "comment_ratio": 0.0,
+    "file_count": 0,
+    "file_size_distribution": {
+      "small_0_100": 0,
+      "medium_101_500": 0,
+      "large_501_plus": 0
+    },
+    "by_module": {},
+    "large_files": [],
+    "large_functions": [],
+    "low_documentation": [],
+    "per_file": []
+  },
+  "tests": {
+    "total_test_files": 0,
+    "unit_test_files": 0,
+    "integration_test_files": 0,
+    "total_test_functions": 0,
+    "unit_test_functions": 0,
+    "integration_test_functions": 0,
+    "test_ratio": {
+      "unit_percentage": 0.0,
+      "integration_percentage": 0.0
+    },
+    "by_module": {},
+    "testability": {
+      "total_functions": 0,
+      "functions_with_db_access": 0,
+      "functions_with_business_logic": 0,
+      "functions_mixing_both": 0,
+      "testability_score": 100.0,
+      "untestable_functions": []
+    },
+    "test_details": []
+  },
+  "module_coupling": {
+    "total_modules": 2,
+    "avg_afferent_coupling": 0.0,
+    "avg_efferent_coupling": 0.0,
+    "avg_instability": 0.0,
+    "per_module": {
+      "Status": {
+        "module": "Status",
+        "afferent_coupling": 0,
+        "efferent_coupling": 0,
+        "instability": 0.0,
+        "stability_category": "stable",
+        "imported_by": [],
+        "imports": []
+      },
+      "notebooks": {
+        "module": "notebooks",
+        "afferent_coupling": 0,
+        "efferent_coupling": 0,
+        "instability": 0.0,
+        "stability_category": "stable",
+        "imported_by": [],
+        "imports": []
+      }
+    },
+    "stable_modules": [
+      {
+        "module": "Status",
+        "instability": 0.0
+      },
+      {
+        "module": "notebooks",
+        "instability": 0.0
+      }
+    ],
+    "unstable_modules": [],
+    "high_fanout_modules": [],
+    "dependency_graph": {
+      "nodes": [
+        "Status",
+        "notebooks"
+      ],
+      "edges": []
+    }
+  },
+  "class_metrics": {
+    "total_classes": 0,
+    "avg_lcom": 0.0,
+    "avg_wmc": 0.0,
+    "avg_methods_per_class": 0.0,
+    "by_module": {},
+    "per_class": [],
+    "god_classes": [],
+    "low_cohesion_classes": []
+  },
+  "code_smells": {
+    "total_smells": 0,
+    "by_module": {},
+    "long_methods": [],
+    "long_parameter_lists": [],
+    "deep_nesting": [],
+    "duplicate_code": []
+  },
+  "technical_debt": {
+    "total_remediation_hours": 0.0,
+    "total_remediation_days": 0.0,
+    "development_cost_hours": 0.0,
+    "debt_ratio": 0.0,
+    "sqale_rating": "A",
+    "debt_breakdown": {
+      "complexity": 0.0,
+      "maintainability": 0.0,
+      "db_coupling": 0.0,
+      "class_design": 0.0,
+      "code_smells": 0.0
+    },
+    "by_module": {},
+    "top_debt_files": [],
+    "issue_costs": {
+      "very_high_complexity": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "high_complexity": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "low_maintainability": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "ownership_violation_write": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "ownership_violation_read": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "god_class": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "low_cohesion": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "long_method": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "long_parameter_list": {
+        "count": 0,
+        "total_hours": 0.0
+      },
+      "deep_nesting": {
+        "count": 0,
+        "total_hours": 0.0
+      }
+    }
+  },
+  "module_health": {
+    "overall_health": 0.0,
+    "by_module": {},
+    "module_rankings": []
+  }
+}
