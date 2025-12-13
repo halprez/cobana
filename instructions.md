@@ -241,7 +241,7 @@ def process_claim(claim_id):
 - **Reliability:** Changes to shared tables can break multiple services unpredictably
 - **Trunk-based Development:** Fast tests are essential, but coupling forces slow tests
 
-**Impact on CTO's Goals:**
+**Impact on dev pace and predictability:**
 - Trunk-based development requires fast feedback loops (seconds, not minutes)
 - Monthly stable releases need minimal integration issues
 - Predictable velocity requires independent team deployments
@@ -735,7 +735,7 @@ def test_save_claim(mock_db):
 - **Integration tests (30%):** Run in minutes, developers run before commit
 - **All integration (your current state):** Run in 10+ minutes, developers avoid running
 
-**Impact on CTO's Goals:**
+**Impact on dev pace and predictability:**
 - **Trunk-based development requires:** Fast tests on every merge (seconds)
 - **Your current state:** Slow tests (minutes) block frequent merging
 - **Result:** Integration issues found late, more debugging, slower velocity
