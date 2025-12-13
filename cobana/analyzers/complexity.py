@@ -117,13 +117,16 @@ class ComplexityAnalyzer:
             # Categorize complexity
             category = self._categorize_complexity(complexity)
 
+            # Get class name (if this is a method)
+            class_name = getattr(block, 'classname', None)
+
             func_info = {
                 'name': block.name,
                 'complexity': complexity,
                 'category': category,
                 'line': block.lineno,
-                'is_method': block.classname is not None,
-                'class_name': block.classname if block.classname else None,
+                'is_method': class_name is not None,
+                'class_name': class_name,
             }
 
             functions.append(func_info)
@@ -137,7 +140,7 @@ class ComplexityAnalyzer:
                     'line': block.lineno,
                     'complexity': complexity,
                     'category': category,
-                    'class_name': block.classname,
+                    'class_name': class_name,
                 })
 
         avg_complexity = complexity_sum / len(functions) if functions else 0.0

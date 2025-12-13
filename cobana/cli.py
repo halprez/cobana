@@ -1,0 +1,290 @@
+"""Command-line interface for COBANA.
+
+Provides the main entry point for running codebase analysis from the command line.
+"""
+
+import argparse
+import sys
+from pathlib import Path
+import logging
+
+from cobana.analyzer import CodebaseAnalyzer
+from cobana.report.json_generator import JSONReportGenerator
+from cobana.report.md_generator import MarkdownReportGenerator
+
+logger = logging.getLogger(__name__)
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create argument parser.
+
+    Returns:
+        Configured ArgumentParser
+    """
+    parser = argparse.ArgumentParser(
+        prog='cobana',
+        description='COBANA - Codebase Architecture Analysis Tool',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  cobana /path/to/backend
+  cobana /path/to/backend --config custom.yaml --output analysis.html
+  cobana /path/to/backend --service-name claims --json data.json --verbose
+  cobana /path/to/backend --markdown summary.md
+        """
+    )
+
+    # Required arguments
+    parser.add_argument(
+        'path',
+        type=str,
+        help='Path to codebase root directory'
+    )
+
+    # Optional arguments
+    parser.add_argument(
+        '--config',
+        type=str,
+        metavar='FILE',
+        help='Configuration file (default: config.yaml if exists)'
+    )
+
+    parser.add_argument(
+        '--output',
+        type=str,
+        metavar='FILE',
+        help='HTML report output (default: report.html) [NOT YET IMPLEMENTED]'
+    )
+
+    parser.add_argument(
+        '--json',
+        type=str,
+        metavar='FILE',
+        help='JSON data output (optional)'
+    )
+
+    parser.add_argument(
+        '--markdown',
+        '--md',
+        type=str,
+        metavar='FILE',
+        dest='markdown',
+        help='Markdown summary output (optional)'
+    )
+
+    parser.add_argument(
+        '--service-name',
+        type=str,
+        metavar='NAME',
+        help='Service name for ownership analysis'
+    )
+
+    parser.add_argument(
+        '--module-depth',
+        type=int,
+        metavar='N',
+        default=1,
+        help='Folder depth for module detection (default: 1)'
+    )
+
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Show progress during analysis'
+    )
+
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='COBANA 1.0.0'
+    )
+
+    return parser
+
+
+def main() -> int:
+    """Main CLI entry point.
+
+    Returns:
+        Exit code (0 = success, 1 = error)
+    """
+    parser = create_parser()
+    args = parser.parse_args()
+
+    # Validate path
+    codebase_path = Path(args.path)
+    if not codebase_path.exists():
+        print(f"Error: Path does not exist: {args.path}", file=sys.stderr)
+        return 1
+
+    if not codebase_path.is_dir():
+        print(f"Error: Path is not a directory: {args.path}", file=sys.stderr)
+        return 1
+
+    try:
+        # Initialize analyzer
+        print(f"🔍 Analyzing codebase: {codebase_path}")
+        print()
+
+        analyzer = CodebaseAnalyzer(
+            root_path=codebase_path,
+            config_path=args.config,
+            verbose=args.verbose
+        )
+
+        # Override config with CLI arguments if provided
+        if args.service_name:
+            analyzer.config['service_name'] = args.service_name
+
+        if args.module_depth:
+            analyzer.config['module_detection']['depth'] = args.module_depth
+
+        # Run analysis
+        results = analyzer.analyze()
+
+        # Print summary to console
+        print_summary(results)
+
+        # Generate reports
+        if args.json:
+            json_generator = JSONReportGenerator(results)
+            json_generator.generate(args.json)
+            print(f"\n✅ JSON report saved to: {args.json}")
+
+        if args.markdown:
+            md_generator = MarkdownReportGenerator(results)
+            md_generator.generate(args.markdown)
+            print(f"✅ Markdown summary saved to: {args.markdown}")
+
+        if args.output:
+            print(f"\n⚠️  HTML report generation not yet implemented")
+            print(f"   (Planned for future release)")
+
+        # Suggest next steps if no output specified
+        if not any([args.json, args.markdown, args.output]):
+            print(f"\n💡 Tip: Use --json or --markdown to save detailed reports")
+            print(f"   Example: cobana {args.path} --json analysis.json --markdown summary.md")
+
+        return 0
+
+    except KeyboardInterrupt:
+        print(f"\n\n⚠️  Analysis interrupted by user", file=sys.stderr)
+        return 130
+
+    except Exception as e:
+        print(f"\n❌ Error during analysis: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
+def print_summary(results: dict) -> None:
+    """Print analysis summary to console.
+
+    Args:
+        results: Analysis results
+    """
+    summary = results.get('summary', {})
+    metadata = results.get('metadata', {})
+
+    print("=" * 70)
+    print("ANALYSIS SUMMARY")
+    print("=" * 70)
+    print()
+
+    print(f"Service: {metadata.get('service_name', 'Unknown')}")
+    print(f"Files Analyzed: {metadata.get('total_files_analyzed', 0)}")
+    print(f"Modules: {metadata.get('module_count', 0)}")
+    print()
+
+    # Overall Health
+    health = summary.get('overall_health', 0)
+    health_status = get_health_status(health)
+    print(f"Overall Health: {health:.1f}/100 {health_status}")
+    print()
+
+    # Technical Debt
+    debt_ratio = summary.get('debt_ratio', 0)
+    sqale = summary.get('sqale_rating', 'A')
+    debt_status = get_debt_status(sqale)
+    print(f"Technical Debt: {debt_ratio:.1f}% (SQALE Rating: {sqale}) {debt_status}")
+    print(f"  Remediation Time: {summary.get('total_remediation_hours', 0):.1f} hours")
+    print()
+
+    # Database Coupling
+    print("Database Coupling:")
+    print(f"  Total Operations: {summary.get('total_operations', 0)}")
+    print(f"  Critical Violations: {summary.get('violation_count_write', 0)} 🔴")
+    print(f"  Warnings: {summary.get('violation_count_read', 0)} 🟡")
+    print()
+
+    # Code Quality
+    print("Code Quality:")
+    print(f"  Avg Complexity: {summary.get('avg_complexity', 0):.1f}")
+    print(f"  High Complexity Functions: {summary.get('high_complexity_count', 0)}")
+    print(f"  Avg Maintainability: {summary.get('avg_mi', 0):.1f}/100")
+    print()
+
+    # Tests
+    print("Tests:")
+    print(f"  Unit Tests: {summary.get('unit_percentage', 0):.1f}%")
+    print(f"  Integration Tests: {summary.get('integration_percentage', 0):.1f}%")
+    print(f"  Testability Score: {summary.get('testability_score', 0):.1f}%")
+    print()
+
+    # Top Module
+    best_module = summary.get('best_module')
+    worst_module = summary.get('worst_module')
+    if best_module and worst_module:
+        print("Module Rankings:")
+        print(f"  Best: {best_module} ({summary.get('best_score', 0):.1f})")
+        print(f"  Worst: {worst_module} ({summary.get('worst_score', 0):.1f})")
+        print()
+
+    print("=" * 70)
+
+
+def get_health_status(score: float) -> str:
+    """Get health status emoji/text.
+
+    Args:
+        score: Health score
+
+    Returns:
+        Status string
+    """
+    if score >= 80:
+        return "🟢 Excellent"
+    elif score >= 60:
+        return "🟡 Good"
+    elif score >= 40:
+        return "🟠 Warning"
+    else:
+        return "🔴 Critical"
+
+
+def get_debt_status(rating: str) -> str:
+    """Get debt status emoji/text.
+
+    Args:
+        rating: SQALE rating
+
+    Returns:
+        Status string
+    """
+    match rating:
+        case 'A':
+            return "🟢 Excellent"
+        case 'B':
+            return "🟢 Good"
+        case 'C':
+            return "🟡 Moderate"
+        case 'D':
+            return "🟠 High"
+        case _:
+            return "🔴 Critical"
+
+
+if __name__ == '__main__':
+    sys.exit(main())
