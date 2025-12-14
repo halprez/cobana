@@ -434,6 +434,14 @@ class DatabaseCouplingAnalyzer:
         # Convert by_module from defaultdict to regular dict
         self.results["by_module"] = dict(self.results["by_module"])
 
+        # Add violation counts for template/report access
+        self.results["violation_count_read"] = len(
+            [v for v in self.results["violations"] if v.get("type") == "read"]
+        )
+        self.results["violation_count_write"] = len(
+            [v for v in self.results["violations"] if v.get("type") == "write"]
+        )
+
         return self.results
 
     def get_summary(self) -> dict[str, Any]:

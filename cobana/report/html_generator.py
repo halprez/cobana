@@ -55,6 +55,7 @@ class HtmlReportGenerator:
             "db_coupling_section.html": self._create_db_coupling_template(),
             "complexity_section.html": self._create_complexity_template(),
             "maintainability_section.html": self._create_maintainability_template(),
+            "code_size_section.html": self._create_code_size_template(),
             "tests_section.html": self._create_tests_template(),
             "code_smells_section.html": self._create_code_smells_template(),
             "technical_debt_section.html": self._create_technical_debt_template(),
@@ -102,12 +103,12 @@ class HtmlReportGenerator:
             "analysis_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "metadata": self.results.get("metadata", {}),
             "summary": self.results.get("summary", {}),
-            "complexity": self.results.get("complexity", {}),
-            "maintainability": self.results.get("maintainability", {}),
-            "code_size": self.results.get("code_size", {}),
+            "complexity": self._prepare_complexity_data(),
+            "maintainability": self._prepare_maintainability_data(),
+            "code_size": self._prepare_code_size_data(),
             "tests": self._prepare_test_data(),
             "code_smells": self._prepare_code_smells_data(),
-            "db_coupling": self.results.get("db_coupling", {}),
+            "db_coupling": self._prepare_db_coupling_data(),
             "technical_debt": self.results.get("technical_debt", {}),
             "module_health": module_health_dict,
             "module_rankings": self._prepare_module_rankings(),
@@ -148,6 +149,39 @@ class HtmlReportGenerator:
 
         return rankings
 
+    def _get_root_path(self) -> Path:
+        """Get the codebase root path from metadata.
+
+        Returns:
+            Path to codebase root
+        """
+        metadata = self.results.get("metadata", {})
+        codebase_path = metadata.get("codebase_path", "")
+        return Path(codebase_path) if codebase_path else Path.cwd()
+
+    def _format_file_path(self, file_path: str, module_name: str = "") -> str:
+        """Format file path as relative to codebase root.
+
+        Args:
+            file_path: Absolute file path
+            module_name: Module name for context
+
+        Returns:
+            Relative path string
+        """
+        try:
+            abs_path = Path(file_path).resolve()
+            root_path = self._get_root_path()
+            rel_path = abs_path.relative_to(root_path)
+            return str(rel_path)
+        except (ValueError, TypeError):
+            # If path is not relative to root, return as-is
+            return (
+                str(file_path)
+                .replace(str(self._get_root_path()), "")
+                .lstrip("/")
+            )
+
     def _prepare_test_data(self) -> dict[str, Any]:
         """Prepare test data for template rendering.
 
@@ -186,7 +220,7 @@ class HtmlReportGenerator:
         # Transform test_details to template format
         test_files = [
             {
-                "file": test.get("file", ""),
+                "file": self._format_file_path(test.get("file", "")),
                 "lines": len(
                     read_file_safely(
                         Path(test.get("file", "")).resolve()
@@ -227,8 +261,13 @@ class HtmlReportGenerator:
             file_path = method.get("module", "unknown")
 
             if file_path not in long_files_dict:
+                rel_path = (
+                    self._format_file_path(file_path)
+                    if file_path != "unknown"
+                    else "unknown"
+                )
                 long_files_dict[file_path] = {
-                    "file": file_path,
+                    "file": rel_path,
                     "lines": method.get("sloc", 0),
                     "functions": 0,
                 }
@@ -246,6 +285,177 @@ class HtmlReportGenerator:
             "complex_classes": [],  # Not tracked by current analyzer
             # Include all other fields from results
             **code_smells_results,
+        }
+
+    def _prepare_db_coupling_data(self) -> dict[str, Any]:
+        """Prepare database coupling data for template rendering.
+
+        Returns:
+            Dictionary with template-friendly database coupling data
+        """
+        db_coupling_results = self.results.get("db_coupling", {})
+
+        # Format file paths in violations
+        violations = db_coupling_results.get("violations", [])
+        formatted_violations = []
+        for violation in violations:
+            if isinstance(violation, dict):
+                file_path = violation.get("file", "")
+                rel_path = (
+                    self._format_file_path(file_path)
+                    if file_path
+                    else "unknown"
+                )
+                formatted_violation = violation.copy()
+                formatted_violation["file"] = rel_path
+                formatted_violations.append(formatted_violation)
+
+        return {
+            **db_coupling_results,
+            "violations": formatted_violations,
+        }
+
+    def _prepare_maintainability_data(self) -> dict[str, Any]:
+        """Prepare maintainability data for template rendering, aggregated by file.
+
+        Returns:
+            Dictionary with template-friendly maintainability data
+        """
+        maintainability_results = self.results.get("maintainability", {})
+
+        # Get per_file data if available
+        per_file = maintainability_results.get("per_file", {})
+
+        # Transform per_file data to list format with relative paths
+        low_maintainability_files = []
+        for file_path, file_data in per_file.items():
+            if isinstance(file_data, dict):
+                rel_path = self._format_file_path(file_path)
+                low_maintainability_files.append(
+                    {
+                        "file": rel_path,
+                        "maintainability_index": file_data.get(
+                            "maintainability_index", 0
+                        ),
+                        "functions_count": file_data.get("functions_count", 0),
+                        "avg_complexity": file_data.get("avg_complexity", 0),
+                    }
+                )
+
+        # Sort by maintainability index (lower is worse)
+        low_maintainability_files.sort(key=lambda x: x["maintainability_index"])
+
+        return {
+            "avg_maintainability": maintainability_results.get(
+                "avg_maintainability", 0
+            ),
+            "low_maintainability_count": len(
+                [
+                    f
+                    for f in low_maintainability_files
+                    if f["maintainability_index"] < 20
+                ]
+            ),
+            "low_maintainability_files": low_maintainability_files,
+            **maintainability_results,
+        }
+
+    def _prepare_code_size_data(self) -> dict[str, Any]:
+        """Prepare code size data for template rendering, aggregated by file.
+
+        Returns:
+            Dictionary with template-friendly code size data
+        """
+        code_size_results = self.results.get("code_size", {})
+
+        # Get per_file data if available
+        per_file = code_size_results.get("per_file", {})
+
+        # Transform per_file data to list format with relative paths
+        large_files = []
+        for file_path, file_data in per_file.items():
+            if isinstance(file_data, dict):
+                rel_path = self._format_file_path(file_path)
+                large_files.append(
+                    {
+                        "file": rel_path,
+                        "lines": file_data.get("lines", 0),
+                        "functions": file_data.get("functions", 0),
+                        "classes": file_data.get("classes", 0),
+                    }
+                )
+
+        # Sort by lines of code (largest first)
+        large_files.sort(key=lambda x: x["lines"], reverse=True)
+
+        return {
+            "total_lines": code_size_results.get("total_lines", 0),
+            "total_functions": code_size_results.get("total_functions", 0),
+            "total_classes": code_size_results.get("total_classes", 0),
+            "avg_file_size": code_size_results.get("avg_file_size", 0),
+            "large_files": large_files,
+            **code_size_results,
+        }
+
+    def _prepare_complexity_data(self) -> dict[str, Any]:
+        """Prepare complexity data for template rendering, aggregated by file.
+
+        Transforms function-level complexity data to file-level metrics.
+
+        Returns:
+            Dictionary with template-friendly complexity data
+        """
+        complexity_results = self.results.get("complexity", {})
+
+        # Get per_file data if available
+        per_file = complexity_results.get("per_file", [])
+
+        # Aggregate high complexity by file
+        high_complexity_files: dict[str, dict[str, Any]] = {}
+
+        for file_data in per_file:
+            if not file_data:
+                continue
+
+            file_path = file_data.get("file", "")
+            functions = file_data.get("functions", [])
+
+            # Count high complexity functions in this file
+            high_complexity_funcs = [
+                f for f in functions if f.get("complexity", 0) > 10
+            ]
+
+            if high_complexity_funcs:
+                rel_path = self._format_file_path(file_path)
+                high_complexity_files[file_path] = {
+                    "file": rel_path,
+                    "function_count": len(functions),
+                    "avg_complexity": file_data.get("avg_complexity", 0),
+                    "max_complexity": file_data.get("max_complexity", 0),
+                    "high_complexity_count": len(high_complexity_funcs),
+                    "high_complexity_functions": high_complexity_funcs,
+                }
+
+        # Convert to list and sort by high complexity count
+        high_complexity_files_list = list(high_complexity_files.values())
+        high_complexity_files_list.sort(
+            key=lambda x: x["high_complexity_count"], reverse=True
+        )
+
+        return {
+            "avg_complexity": complexity_results.get("avg_complexity", 0),
+            "high_complexity_count": complexity_results.get(
+                "high_complexity_count", 0
+            ),
+            "total_functions": complexity_results.get("total_functions", 0),
+            "max_complexity": complexity_results.get("max_complexity", 0),
+            "max_complexity_function": complexity_results.get(
+                "max_complexity_function"
+            ),
+            "high_complexity_files": high_complexity_files_list,
+            "per_file": per_file,
+            # Include all other fields from results
+            **complexity_results,
         }
 
     def _create_module_overview_template(self) -> str:
@@ -407,34 +617,40 @@ class HtmlReportGenerator:
         </div>
     </div>
 
-    {% if complexity.get('high_complexity_functions') %}
+    {% if complexity.get('high_complexity_files') %}
     <details open>
-        <summary>🔴 High Complexity Functions ({{ complexity.get('high_complexity_count', 0) }})</summary>
+        <summary>🔴 High Complexity Files ({{ complexity.get('high_complexity_count', 0) }})</summary>
         <table>
             <thead>
                 <tr>
-                    <th>Function</th>
-                    <th>Complexity</th>
-                    <th>Location</th>
+                    <th>File</th>
+                    <th>Avg Complexity</th>
+                    <th>Max Complexity</th>
+                    <th>High Complexity Functions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for func in complexity.get('high_complexity_functions', [])[:20] %}
+                {% for file in complexity.get('high_complexity_files', [])[:20] %}
                 <tr>
-                    <td><code>{{ func.get('function', '') }}</code></td>
+                    <td><code>{{ file.get('file', '') }}</code></td>
                     <td>
-                        <span class="badge {{ 'badge-danger' if func.get('complexity', 0) > 15 else 'badge-warning' }}">
-                            {{ func.get('complexity', 0) }}
+                        <span class="badge {{ 'badge-success' if file.get('avg_complexity', 0) < 6 else 'badge-warning' if file.get('avg_complexity', 0) < 11 else 'badge-danger' }}">
+                            {{ "%.1f"|format(file.get('avg_complexity', 0)) }}
                         </span>
                     </td>
-                    <td><code>{{ func.get('file', '') }}:{{ func.get('line', 0) }}</code></td>
+                    <td>
+                        <span class="badge {{ 'badge-danger' if file.get('max_complexity', 0) > 15 else 'badge-warning' }}">
+                            {{ file.get('max_complexity', 0) }}
+                        </span>
+                    </td>
+                    <td>{{ file.get('high_complexity_count', 0) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </details>
     {% else %}
-    <p>✅ No high complexity functions found!</p>
+    <p>✅ No high complexity files found!</p>
     {% endif %}
 </section>
 """
@@ -467,19 +683,20 @@ class HtmlReportGenerator:
         <div class="metric-card {{ 'danger' if maintainability.get('low_maintainability_count', 0) > 0 else 'success' }}">
             <h4>Low Maintainability</h4>
             <div class="metric-value">{{ maintainability.get('low_maintainability_count', 0) }}</div>
-            <div class="metric-label">Files with MI < 65</div>
+            <div class="metric-label">Files with MI < 20</div>
         </div>
     </div>
 
     {% if maintainability.get('low_maintainability_files') %}
     <details open>
-        <summary>🔴 Low Maintainability Files ({{ maintainability.get('low_maintainability_count', 0) }})</summary>
+        <summary>🔴 Low Maintainability Files ({{ maintainability.get('low_maintainability_files')|length }})</summary>
         <table>
             <thead>
                 <tr>
                     <th>File</th>
                     <th>MI Score</th>
-                    <th>Rank</th>
+                    <th>Functions</th>
+                    <th>Avg Complexity</th>
                 </tr>
             </thead>
             <tbody>
@@ -487,11 +704,12 @@ class HtmlReportGenerator:
                 <tr>
                     <td><code>{{ file.get('file', '') }}</code></td>
                     <td>
-                        <span class="badge {{ 'badge-danger' if file.get('maintainability', 0) < 50 else 'badge-warning' }}">
-                            {{ "%.1f"|format(file.get('maintainability', 0)) }}
+                        <span class="badge {{ 'badge-danger' if file.get('maintainability_index', 0) < 50 else 'badge-warning' }}">
+                            {{ "%.1f"|format(file.get('maintainability_index', 0)) }}
                         </span>
                     </td>
-                    <td>{{ file.get('rank', '') }}</td>
+                    <td>{{ file.get('functions_count', 0) }}</td>
+                    <td>{{ "%.2f"|format(file.get('avg_complexity', 0)) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -499,6 +717,78 @@ class HtmlReportGenerator:
     </details>
     {% else %}
     <p>✅ All files have good maintainability!</p>
+    {% endif %}
+</section>
+"""
+
+    def _create_code_size_template(self) -> str:
+        """Create code size section template."""
+        return """
+<section id="code-size">
+    <h2>📊 Code Size Metrics</h2>
+
+    <div class="explanation-box">
+        <h3>📚 What are code size metrics?</h3>
+        <p>Code size metrics measure the volume of code in your codebase. They help identify
+        files that may be too large and benefit from refactoring.</p>
+        <ul>
+            <li><strong>Lines of Code (LOC):</strong> Total non-blank, non-comment lines</li>
+            <li><strong>Functions:</strong> Total number of functions/methods</li>
+            <li><strong>Classes:</strong> Total number of classes</li>
+        </ul>
+        <p><strong>⚡ Why it matters:</strong> Larger files are harder to understand and maintain.
+        Consider breaking files with >500 LOC into smaller modules.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card">
+            <h4>Total Lines</h4>
+            <div class="metric-value">{{ code_size.get('total_lines', 0) }}</div>
+            <div class="metric-label">Lines of code</div>
+        </div>
+        <div class="metric-card">
+            <h4>Total Functions</h4>
+            <div class="metric-value">{{ code_size.get('total_functions', 0) }}</div>
+            <div class="metric-label">Functions/methods</div>
+        </div>
+        <div class="metric-card">
+            <h4>Total Classes</h4>
+            <div class="metric-value">{{ code_size.get('total_classes', 0) }}</div>
+            <div class="metric-label">Classes/types</div>
+        </div>
+        <div class="metric-card">
+            <h4>Average File Size</h4>
+            <div class="metric-value">{{ "%.0f"|format(code_size.get('avg_file_size', 0)) }}</div>
+            <div class="metric-label">Lines per file</div>
+        </div>
+    </div>
+
+    {% if code_size.get('large_files') %}
+    <details open>
+        <summary>📈 Largest Files ({{ code_size.get('large_files')|length }})</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Lines</th>
+                    <th>Functions</th>
+                    <th>Classes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in code_size.get('large_files', [])[:20] %}
+                <tr>
+                    <td><code>{{ file.get('file', '') }}</code></td>
+                    <td>{{ file.get('lines', 0) }}</td>
+                    <td>{{ file.get('functions', 0) }}</td>
+                    <td>{{ file.get('classes', 0) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% else %}
+    <p>✅ No code size data available.</p>
     {% endif %}
 </section>
 """

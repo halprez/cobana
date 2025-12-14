@@ -370,6 +370,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         {% include 'maintainability_section.html' ignore missing %}
 
+        {% include 'code_size_section.html' ignore missing %}
+
         {% include 'tests_section.html' ignore missing %}
 
         {% include 'code_smells_section.html' ignore missing %}

@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codebase Analysis Report - unknown</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #007bff;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .metadata {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            color: #666;
+        }
+
+        .metadata p {
+            margin: 5px 0;
+        }
+
+        nav {
+            background: #007bff;
+            padding: 15px;
+            margin: 30px -40px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        section {
+            margin: 40px 0;
+            padding: 30px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        h3 {
+            color: #555;
+            font-size: 1.5em;
+            margin: 25px 0 15px 0;
+        }
+
+        h4 {
+            color: #666;
+            font-size: 1.2em;
+            margin: 15px 0 10px 0;
+        }
+
+        .metric-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .metric-card.success {
+            border-left-color: #28a745;
+        }
+
+        .metric-card.warning {
+            border-left-color: #ffc107;
+        }
+
+        .metric-card.danger {
+            border-left-color: #dc3545;
+        }
+
+        .metric-card h4 {
+            color: #666;
+            font-size: 0.9em;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .explanation-box {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .explanation-box h3 {
+            color: #007bff;
+            margin-top: 0;
+        }
+
+        .explanation-box p {
+            margin: 10px 0;
+        }
+
+        .explanation-box ul {
+            margin: 10px 0 10px 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto !important;
+        }
+
+        details {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #007bff;
+            padding: 10px;
+            user-select: none;
+        }
+
+        summary:hover {
+            background: #f8f9fa;
+        }
+
+        .issue-list {
+            margin: 15px 0;
+        }
+
+        .issue-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-left: 3px solid #ffc107;
+            border-radius: 4px;
+        }
+
+        .issue-item.critical {
+            border-left-color: #dc3545;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        @media print {
+            nav {
+                position: static;
+            }
+            details {
+                border: none;
+            }
+            details[open] summary {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .metric-cards {
+                grid-template-columns: 1fr;
+            }
+            nav {
+                margin: 20px -20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Codebase Architecture Analysis</h1>
+            <div class="metadata">
+                <p><strong>Service:</strong> unknown</p>
+                <p><strong>Analysis Date:</strong> 2025-12-14 08:28:36</p>
+                <p><strong>Files Analyzed:</strong> 23</p>
+                <p><strong>Modules:</strong> 4</p>
+            </div>
+        </header>
+
+        <nav>
+            <a href="#executive-summary">📊 Summary</a>
+            <a href="#module-overview">📦 Modules</a>
+            <a href="#database-coupling">🔗 DB Coupling</a>
+            <a href="#complexity">📊 Complexity</a>
+            <a href="#maintainability">🔧 Maintainability</a>
+            <a href="#tests">🧪 Tests</a>
+            <a href="#code-smells">👃 Code Smells</a>
+            <a href="#technical-debt">💰 Tech Debt</a>
+        </nav>
+
+        <section id="executive-summary">
+            <h2>📊 Executive Summary</h2>
+
+            <div class="metric-cards">
+                <div class="metric-card warning">
+                    <h4>Overall Health</h4>
+                    <div class="metric-value">77.7/100</div>
+                    <div class="metric-label">
+                        🟡 Good
+                        
+                    </div>
+                </div>
+
+                <div class="metric-card success">
+                    <h4>Technical Debt</h4>
+                    <div class="metric-value">6.3%</div>
+                    <div class="metric-label">Rating: B | 24.8 hours</div>
+                </div>
+
+                <div class="metric-card success">
+                    <h4>DB Coupling</h4>
+                    <div class="metric-value">0</div>
+                    <div class="metric-label">
+                        🔴 0 writes |
+                        🟡 0 reads
+                    </div>
+                </div>
+
+                <div class="metric-card success">
+                    <h4>Average Complexity</h4>
+                    <div class="metric-value">3.6</div>
+                    <div class="metric-label">5 high complexity functions</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Module Health Comparison</h3>
+                <canvas id="moduleHealthChart"></canvas>
+            </div>
+        </section>
+
+        
+<section id="module-overview">
+    <h2>📦 Module Overview</h2>
+
+    <div class="explanation-box">
+        <h3>📚 What are modules?</h3>
+        <p>Modules are organizational units in your codebase (typically folders with Python packages).
+        We analyze each module's health based on complexity, maintainability, test coverage, and code quality.</p>
+    </div>
+
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Module</th>
+                <th>Health Score</th>
+                <th>Files</th>
+                <th>Avg Complexity</th>
+                <th>Maintainability</th>
+                <th>Test Coverage</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            <tr>
+                <td><code>report</code></td>
+                <td>
+                    
+                    <span class="badge badge-warning">
+                        78.5/100
+                    </span>
+                </td>
+                <td>0</td>
+                <td>0.0</td>
+                <td>0.0</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><code>analyzers</code></td>
+                <td>
+                    
+                    <span class="badge badge-warning">
+                        71.3/100
+                    </span>
+                </td>
+                <td>0</td>
+                <td>0.0</td>
+                <td>0.0</td>
+                <td>0.0%</td>
+            </tr>
+            
+            <tr>
+                <td><code>utils</code></td>
+                <td>
+                    
+                    <span class="badge badge-success">
+                        83.3/100
+                    </span>
+                </td>
+                <td>0</td>
+                <td>0.0</td>
+                <td>0.0</td>
+                <td>0.0%</td>
+            </tr>
+            
+        </tbody>
+    </table>
+    
+</section>
+
+        
+<section id="database-coupling">
+    <h2>🔗 Database Coupling</h2>
+
+    <div class="explanation-box">
+        <h3>📚 What is database coupling?</h3>
+        <p>Database coupling measures how closely your application logic is tied to database operations.
+        Direct database calls in business logic (write operations) create tight coupling and make code harder to test and maintain.</p>
+        <ul>
+            <li><strong>🔴 Write operations</strong> (INSERT, UPDATE, DELETE) - Critical violations</li>
+            <li><strong>🟡 Read operations</strong> (SELECT) - Warnings</li>
+        </ul>
+        <p><strong>⚡ Why it matters:</strong> Proper layering isolates database logic in repositories/DAOs,
+        making code testable, maintainable, and easier to refactor.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card success">
+            <h4>Write Violations</h4>
+            <div class="metric-value">0</div>
+            <div class="metric-label">Critical coupling issues</div>
+        </div>
+        <div class="metric-card success">
+            <h4>Read Operations</h4>
+            <div class="metric-value">0</div>
+            <div class="metric-label">Potential improvements</div>
+        </div>
+        <div class="metric-card">
+            <h4>Total Operations</h4>
+            <div class="metric-value">0</div>
+            <div class="metric-label">Database interactions found</div>
+        </div>
+    </div>
+
+    
+    <p>✅ No database coupling violations found!</p>
+    
+</section>
+
+        
+<section id="complexity">
+    <h2>📊 Code Complexity</h2>
+
+    <div class="explanation-box">
+        <h3>📚 What is cyclomatic complexity?</h3>
+        <p>Cyclomatic complexity measures the number of independent paths through code.
+        It counts decision points (if, for, while, etc.) to estimate code complexity.</p>
+        <ul>
+            <li><strong>1-5:</strong> Simple, easy to understand 🟢</li>
+            <li><strong>6-10:</strong> Moderate complexity 🟡</li>
+            <li><strong>11+:</strong> High complexity, consider refactoring 🔴</li>
+        </ul>
+        <p><strong>⚡ Why it matters:</strong> High complexity makes code harder to test, debug, and maintain.
+        Functions with complexity >10 should be refactored into smaller, focused units.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card success">
+            <h4>Average Complexity</h4>
+            <div class="metric-value">3.6</div>
+            <div class="metric-label">Across all functions</div>
+        </div>
+        <div class="metric-card danger">
+            <h4>High Complexity</h4>
+            <div class="metric-value">5</div>
+            <div class="metric-label">Functions with complexity > 10</div>
+        </div>
+        <div class="metric-card">
+            <h4>Total Functions</h4>
+            <div class="metric-value">182</div>
+            <div class="metric-label">Analyzed</div>
+        </div>
+    </div>
+
+    
+    <details open>
+        <summary>🔴 High Complexity Files (5)</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Avg Complexity</th>
+                    <th>Max Complexity</th>
+                    <th>High Complexity Functions</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td><code>/home/al3x/src/cobana/cobana/analyzers/class_metrics.py</code></td>
+                    <td>
+                        <span class="badge badge-success">
+                            5.8
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-warning">
+                            15
+                        </span>
+                    </td>
+                    <td>2</td>
+                </tr>
+                
+                <tr>
+                    <td><code>/home/al3x/src/cobana/cobana/cli.py</code></td>
+                    <td>
+                        <span class="badge badge-success">
+                            5.2
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-warning">
+                            13
+                        </span>
+                    </td>
+                    <td>1</td>
+                </tr>
+                
+                <tr>
+                    <td><code>/home/al3x/src/cobana/cobana/analyzers/complexity.py</code></td>
+                    <td>
+                        <span class="badge badge-success">
+                            4.6
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-warning">
+                            12
+                        </span>
+                    </td>
+                    <td>1</td>
+                </tr>
+                
+                <tr>
+                    <td><code>/home/al3x/src/cobana/cobana/analyzers/module_coupling.py</code></td>
+                    <td>
+                        <span class="badge badge-success">
+                            5.3
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-warning">
+                            11
+                        </span>
+                    </td>
+                    <td>1</td>
+                </tr>
+                
+            </tbody>
+        </table>
+    </details>
+    
+</section>
+
+        
+<section id="maintainability">
+    <h2>🔧 Maintainability Index</h2>
+
+    <div class="explanation-box">
+        <h3>📚 What is the Maintainability Index?</h3>
+        <p>A score (0-100) that combines cyclomatic complexity, lines of code, and Halstead volume
+        to estimate how maintainable code is. Higher scores mean easier maintenance.</p>
+        <ul>
+            <li><strong>85-100:</strong> Highly maintainable 🟢</li>
+            <li><strong>65-84:</strong> Moderately maintainable 🟡</li>
+            <li><strong>0-64:</strong> Difficult to maintain 🔴</li>
+        </ul>
+        <p><strong>⚡ Why it matters:</strong> Low maintainability means higher costs for changes,
+        more bugs, and slower development velocity.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card danger">
+            <h4>Average MI</h4>
+            <div class="metric-value">0.0</div>
+            <div class="metric-label">Out of 100</div>
+        </div>
+        <div class="metric-card success">
+            <h4>Low Maintainability</h4>
+            <div class="metric-value">0</div>
+            <div class="metric-label">Files with MI < 65</div>
+        </div>
+    </div>
+
+    
+    <p>✅ All files have good maintainability!</p>
+    
+</section>
+
+        
+<section id="tests">
+    <h2>🧪 Test Coverage</h2>
+
+    <div class="explanation-box">
+        <h3>📚 What is test coverage?</h3>
+        <p>Test coverage measures the percentage of code that is executed by automated tests.
+        We detect test files and estimate coverage based on test-to-code ratio.</p>
+        <p><strong>⚡ Why it matters:</strong> Higher test coverage correlates with fewer bugs
+        and easier refactoring. Aim for >80% coverage on critical business logic.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card danger">
+            <h4>Estimated Coverage</h4>
+            <div class="metric-value">0.0%</div>
+            <div class="metric-label">Based on test/code ratio</div>
+        </div>
+        <div class="metric-card">
+            <h4>Test Files</h4>
+            <div class="metric-value">0</div>
+            <div class="metric-label">Total test files</div>
+        </div>
+        <div class="metric-card">
+            <h4>Test Lines</h4>
+            <div class="metric-value">0</div>
+            <div class="metric-label">Lines of test code</div>
+        </div>
+    </div>
+
+    
+    <p>⚠️ No test files detected!</p>
+    
+</section>
+
+        
+<section id="code-smells">
+    <h2>👃 Code Smells</h2>
+
+    <div class="explanation-box">
+        <h3>📚 What are code smells?</h3>
+        <p>Code smells are indicators of potential problems in code structure. They're not bugs,
+        but suggest areas that may benefit from refactoring.</p>
+        <ul>
+            <li><strong>Long files:</strong> Files with >500 lines may have too many responsibilities</li>
+            <li><strong>Complex classes:</strong> Classes with high complexity or many methods</li>
+            <li><strong>Deep nesting:</strong> Code with excessive indentation levels</li>
+        </ul>
+        <p><strong>⚡ Why it matters:</strong> Code smells make code harder to understand and maintain.
+        Addressing them early prevents technical debt accumulation.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card danger">
+            <h4>Long Files</h4>
+            <div class="metric-value">3</div>
+            <div class="metric-label">Files > 500 lines</div>
+        </div>
+        <div class="metric-card success">
+            <h4>Complex Classes</h4>
+            <div class="metric-value">0</div>
+            <div class="metric-label">High complexity classes</div>
+        </div>
+    </div>
+
+    
+    <details open>
+        <summary>📏 Long Files (3)</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Lines</th>
+                    <th>Functions</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td><code>root</code></td>
+                    <td>
+                        <span class="badge badge-warning">
+                            96
+                        </span>
+                    </td>
+                    <td>3</td>
+                </tr>
+                
+                <tr>
+                    <td><code>report</code></td>
+                    <td>
+                        <span class="badge badge-warning">
+                            95
+                        </span>
+                    </td>
+                    <td>10</td>
+                </tr>
+                
+                <tr>
+                    <td><code>analyzers</code></td>
+                    <td>
+                        <span class="badge badge-warning">
+                            90
+                        </span>
+                    </td>
+                    <td>12</td>
+                </tr>
+                
+            </tbody>
+        </table>
+    </details>
+    
+
+    
+
+    
+</section>
+
+        
+<section id="technical-debt">
+    <h2>💰 Technical Debt</h2>
+
+    <div class="explanation-box">
+        <h3>📚 What is technical debt?</h3>
+        <p>Technical debt represents the cost of additional work caused by choosing quick solutions
+        over better approaches. We calculate debt using the SQALE methodology.</p>
+        <ul>
+            <li><strong>Debt Ratio:</strong> Technical debt / development cost (lower is better)</li>
+            <li><strong>SQALE Rating:</strong> A (≤5%), B (6-10%), C (11-20%), D (21-50%), E (>50%)</li>
+            <li><strong>Remediation Time:</strong> Estimated hours to fix all issues</li>
+        </ul>
+        <p><strong>⚡ Why it matters:</strong> Unchecked technical debt slows development,
+        increases bugs, and makes changes increasingly expensive over time.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card success">
+            <h4>SQALE Rating</h4>
+            <div class="metric-value">B</div>
+            <div class="metric-label">Overall code quality</div>
+        </div>
+        <div class="metric-card warning">
+            <h4>Debt Ratio</h4>
+            <div class="metric-value">6.3%</div>
+            <div class="metric-label">Debt vs development cost</div>
+        </div>
+        <div class="metric-card">
+            <h4>Remediation Time</h4>
+            <div class="metric-value">24.8</div>
+            <div class="metric-label">Hours to fix</div>
+        </div>
+    </div>
+
+    
+
+    
+</section>
+
+        <footer style="margin-top: 60px; padding-top: 30px; border-top: 2px solid #eee; text-align: center; color: #666;">
+            <p>Generated by <strong>COBANA</strong> - Codebase Architecture Analysis Tool</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">Report generated on 2025-12-14 08:28:36</p>
+        </footer>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Module Health Chart
+        const moduleData = [{"category": "good", "module": "analyzers", "score": 71.32041940942237}, {"category": "good", "module": "report", "score": 78.484198564821}, {"category": "excellent", "module": "utils", "score": 83.29995482045501}];
+
+        if (moduleData && moduleData.length > 0) {
+            const ctx = document.getElementById('moduleHealthChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: moduleData.map(m => m.module),
+                        datasets: [{
+                            label: 'Health Score',
+                            data: moduleData.map(m => m.score),
+                            backgroundColor: moduleData.map(m => {
+                                if (m.score >= 80) return 'rgba(40, 167, 69, 0.8)';
+                                if (m.score >= 60) return 'rgba(255, 193, 7, 0.8)';
+                                if (m.score >= 40) return 'rgba(255, 152, 0, 0.8)';
+                                return 'rgba(220, 53, 69, 0.8)';
+                            }),
+                            borderColor: moduleData.map(m => {
+                                if (m.score >= 80) return 'rgba(40, 167, 69, 1)';
+                                if (m.score >= 60) return 'rgba(255, 193, 7, 1)';
+                                if (m.score >= 40) return 'rgba(255, 152, 0, 1)';
+                                return 'rgba(220, 53, 69, 1)';
+                            }),
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Health Score (0-100)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

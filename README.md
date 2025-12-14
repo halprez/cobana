@@ -1,4 +1,4 @@
-# COBANA - Codebase Architecture Analysis Tool
+cd # COBANA - Codebase Architecture Analysis Tool
 
 **Automated Python codebase analysis tool to measure architectural health, code quality, and technical debt with educational explanations for both technical and non-technical stakeholders.**
 
@@ -6,16 +6,16 @@
 
 ### 🔍 Comprehensive Analysis
 
-- **Database Coupling Analysis** (PRIMARY FOCUS) - Detect and categorize database operations, identify architectural violations
+- **Database Coupling Analysis** - Detect and categorize database operations, identify architectural violations, mixed business logic with data access, NoSQL (MongoDB) support
 - **Cyclomatic Complexity** - Measure code complexity and identify overly complex functions
 - **Maintainability Index** - Calculate maintainability scores per file
 - **Code Size Metrics** - Track SLOC, comment ratios, large files and functions
-- **Test Analysis** - Categorize tests (unit vs integration), calculate testability scores
+- **Test Analysis** - Categorize tests (unit vs integration), smart module inference from imports, calculate testability scores
 - **Module Coupling** - Analyze dependencies between modules, calculate instability metrics
 - **Class Metrics** - Detect god classes, measure LCOM and WMC
 - **Code Smells** - Identify long methods, deep nesting, long parameter lists
 - **Technical Debt** - Calculate remediation costs and assign SQALE ratings (A-E)
-- **Module Health Scores** - Composite health scores (0-100) per module
+- **Module Health Scores** - Composite health scores (0-100) per module, ranked worst-first
 
 ### 📊 Module-Level Breakdown
 
@@ -29,7 +29,7 @@ All metrics are tracked both **overall** and **per-module**, enabling:
 
 - **JSON** - Machine-readable data for automation/CI/CD
 - **Markdown** - Text summary for documentation, PRs, commit messages
-- **HTML** - Self-contained visual report *(coming soon)*
+- **HTML** - Self-contained visual report with interactive charts and explanations
 
 ### 🎯 Educational & Actionable
 
@@ -37,6 +37,7 @@ Every metric includes:
 - Plain-language explanation ("What is this?")
 - Business impact ("Why it matters")
 - Specific recommendations ("What to do")
+- **Relative file paths** from codebase root with module name highlight
 - File paths and line numbers for issues
 
 ## Requirements
@@ -71,26 +72,26 @@ pip install -e .
 
 ```bash
 # Analyze a codebase
-cobana /path/to/your/python/project
+uv run cobana /path/to/your/python/project
 
 # With verbose output
-cobana /path/to/project --verbose
+uv run cobana /path/to/project --verbose
 
-# Generate reports
-cobana /path/to/project --json analysis.json --markdown summary.md
+# Generate all report formats
+uv run cobana /path/to/project --output report.html --json analysis.json --markdown summary.md
 ```
 
 ### With Configuration
 
 ```bash
 # Use custom configuration
-cobana /path/to/project --config my_config.yaml
+uv run cobana /path/to/project --config my_config.yaml
 
 # Override service name
-cobana /path/to/project --service-name my_service
+uv run cobana /path/to/project --service-name my_service
 
 # Set module detection depth
-cobana /path/to/project --module-depth 2
+uv run cobana /path/to/project --module-depth 2
 ```
 
 ## Configuration
@@ -185,9 +186,12 @@ Database Coupling:
 
 Complete machine-readable data including:
 - All metrics (overall + per-module)
-- Detailed violation lists with file paths and line numbers
-- Module rankings and health scores
+- Detailed violation lists with **relative file paths** and line numbers
+- **Module rankings** sorted worst-first (by health score)
+- Files with **mixed business logic and data access**
+- NoSQL operation analysis (MongoDB, DynamoDB)
 - Technical debt breakdown
+- **Inferred test module associations** from imports
 
 ### Markdown Summary
 
@@ -196,6 +200,7 @@ Concise summary suitable for:
 - Documentation
 - Team reports
 - Stakeholder updates
+- Shows modules ranked worst-first for prioritized improvements
 
 ## Metrics Explained
 
@@ -203,13 +208,19 @@ Concise summary suitable for:
 
 **What it measures:** How tightly code is coupled to database access
 
+**Key improvements:**
+- Detects **mixed business logic** - Functions combining data access with business logic (harder to test)
+- **NoSQL support** - Analyzes MongoDB and DynamoDB operations alongside SQL
+- Identifies files mixing data operations with business logic for targeted refactoring
+
 **Categories:**
 - ✅ **Own tables** - Acceptable
 - ⚠️ **Shared tables** - Warning
 - ⚠️ **Other service reads** - Coupling warning
 - 🔴 **Other service writes** - Critical violation
+- 🔴 **Mixed logic** - Business logic tightly coupled with data operations
 
-**Severity Score:** `(other_reads × 1) + (other_writes × 5)`
+**Severity Score:** `(other_reads × 1) + (other_writes × 5) + (mixed_logic × 3)`
 
 ### Complexity (20% weight)
 
@@ -234,7 +245,28 @@ Concise summary suitable for:
 
 **What it measures:** Percentage of code that can be unit tested
 
-**Identifies:** Functions mixing business logic with database access (untestable)
+**Key improvements:**
+- **Smart module inference** - Determines which module a test belongs to by analyzing imports
+- **Mixed logic detection** - Identifies functions mixing business logic with database access (untestable)
+- **Accurate test coverage** - Better correlation between tests and modules they validate
+
+**Identifies:** Functions mixing business logic with database access (harder to unit test)
+
+### Module Health Rankings
+
+**What it measures:** Overall health score (0-100) for each module
+
+**Key improvements:**
+- **Worst-first ranking** - Modules are ranked from worst to best health score
+- **Prioritized improvements** - Easily identify which modules need attention most
+- **Composite score** - Combines complexity, maintainability, test coverage, coupling, and code smells
+
+**Health Categories:**
+- 80-100: Excellent ✅
+- 60-79: Good 🟡
+- 40-59: Warning 🟠
+- 20-39: Critical 🔴
+- 0-19: Emergency 🆘
 
 ### Code Smells (10% weight)
 
@@ -296,6 +328,8 @@ cobana/
 │   │   ├── tech_debt.py
 │   │   └── module_health.py
 │   ├── report/                # Report generators
+│   │   ├── html_generator.py  # HTML report generation
+│   │   ├── html_template.py   # HTML templates
 │   │   ├── json_generator.py
 │   │   └── md_generator.py
 │   └── utils/                 # Utilities
@@ -320,18 +354,23 @@ uv run cobana /path/to/project
 
 ## Roadmap
 
-### ✅ Completed (v1.0)
+### ✅ Completed (v1.0+)
 
 - All core analyzers
-- JSON and Markdown report generation
+- JSON, Markdown, and HTML report generation
 - Module-level analysis
 - CLI interface
 - Configuration system
+- **Mixed business logic and database coupling detection**
+- **NoSQL (MongoDB, DynamoDB) support**
+- **Smart test module inference from imports**
+- **Module rankings (worst-first)**
+- **Relative file paths with module highlight**
 
 ### 🚧 In Progress
 
-- HTML report generation with charts
 - Comprehensive test suite
+- Performance optimizations
 
 ### 📋 Planned
 
@@ -339,6 +378,7 @@ uv run cobana /path/to/project
 - Historical trend analysis
 - Automated refactoring suggestions
 - Additional language support
+- File-level metrics aggregation
 
 ## Philosophy
 

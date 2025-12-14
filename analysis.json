@@ -1,21 +1,31 @@
 {
-  "analysis_date": "2025-12-13T15:47:50.756827",
+  "analysis_date": "2025-12-14T08:27:37.565397",
   "metadata": {
-    "codebase_path": "/home/al3x/src/cobana",
+    "codebase_path": "/home/al3x/src/cobana/cobana",
     "service_name": "unknown",
-    "total_files_analyzed": 22,
-    "total_files_skipped": 109,
-    "module_count": 2,
+    "total_files_analyzed": 23,
+    "total_files_skipped": 1,
+    "module_count": 4,
     "modules": [
       {
-        "name": "tests",
-        "path": "tests",
-        "description": "Module: tests"
+        "name": "__pycache__",
+        "path": "__pycache__",
+        "description": "Module: __pycache__"
       },
       {
-        "name": "cobana",
-        "path": "cobana",
-        "description": "Module: cobana"
+        "name": "report",
+        "path": "report",
+        "description": "Module: report"
+      },
+      {
+        "name": "analyzers",
+        "path": "analyzers",
+        "description": "Module: analyzers"
+      },
+      {
+        "name": "utils",
+        "path": "utils",
+        "description": "Module: utils"
       }
     ]
   },
@@ -26,52 +36,52 @@
     "violation_count_read": 0,
     "violation_count_write": 0,
     "collections_count": 0,
-    "total_functions": 151,
-    "avg_complexity": 3.6,
+    "total_functions": 182,
+    "avg_complexity": 3.58,
     "max_complexity": 15,
     "high_complexity_count": 5,
-    "simple_functions": 130,
+    "simple_functions": 152,
     "complex_functions": 5,
-    "avg_mi": 71.99,
-    "total_files": 22,
-    "high_maintainability": 12,
+    "avg_mi": 69.33,
+    "total_files": 23,
+    "high_maintainability": 10,
     "low_maintainability": 0,
     "low_mi_count": 0,
-    "total_sloc": 2478,
-    "file_count": 22,
-    "avg_file_size": 112.6,
-    "comment_ratio": 6.66,
-    "large_files_count": 0,
-    "large_functions_count": 15,
+    "total_sloc": 3902,
+    "file_count": 23,
+    "avg_file_size": 169.7,
+    "comment_ratio": 5.94,
+    "large_files_count": 1,
+    "large_functions_count": 25,
     "total_test_files": 0,
     "unit_percentage": 0.0,
     "integration_percentage": 0.0,
     "testability_score": 100.0,
     "untestable_functions": 0,
-    "total_modules": 2,
+    "total_modules": 4,
     "avg_instability": 0.0,
-    "stable_modules_count": 2,
+    "stable_modules_count": 4,
     "unstable_modules_count": 0,
     "high_fanout_count": 0,
-    "total_classes": 20,
-    "avg_lcom": 1.35,
-    "avg_wmc": 20.1,
-    "god_classes_count": 1,
+    "total_classes": 22,
+    "avg_lcom": 1.36,
+    "avg_wmc": 22.4,
+    "god_classes_count": 2,
     "low_cohesion_count": 0,
-    "total_smells": 21,
-    "long_methods": 15,
+    "total_smells": 31,
+    "long_methods": 25,
     "long_parameter_lists": 5,
     "deep_nesting": 1,
     "duplicate_code": 0,
-    "total_remediation_hours": 15.8,
-    "total_remediation_days": 2.0,
-    "debt_ratio": 6.36,
+    "total_remediation_hours": 24.8,
+    "total_remediation_days": 3.1,
+    "debt_ratio": 6.34,
     "sqale_rating": "B",
-    "overall_health": 74.9,
-    "best_module": "cobana",
-    "best_score": 74.9,
-    "worst_module": "cobana",
-    "worst_score": 74.9
+    "overall_health": 77.7,
+    "best_module": "utils",
+    "best_score": 83.3,
+    "worst_module": "analyzers",
+    "worst_score": 71.3
   },
   "db_coupling": {
     "total_operations": 0,
@@ -79,38 +89,59 @@
     "total_files_with_db": 0,
     "severity_score": 0,
     "collections_accessed": {},
+    "mixed_logic_files": [],
     "by_module": {},
     "top_coupled_files": [],
-    "violations": []
+    "violations": [],
+    "violation_count_read": 0,
+    "violation_count_write": 0
   },
   "complexity": {
-    "total_functions": 151,
-    "avg_complexity": 3.6026490066225167,
+    "total_functions": 182,
+    "avg_complexity": 3.5824175824175826,
     "max_complexity": 15,
     "max_complexity_function": {
       "name": "_calculate_lcom",
       "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
-      "module": "cobana",
+      "module": "analyzers",
       "complexity": 15
     },
     "distribution": {
-      "simple_1_5": 130,
-      "moderate_6_10": 16,
+      "simple_1_5": 152,
+      "moderate_6_10": 25,
       "complex_11_20": 5,
       "very_complex_21_plus": 0
     },
     "by_module": {
-      "cobana": {
-        "total_functions": 151,
-        "avg_complexity": 3.6026490066225167,
+      "root": {
+        "total_functions": 14,
+        "avg_complexity": 2.9285714285714284,
+        "max_complexity": 13,
+        "high_complexity_count": 1
+      },
+      "report": {
+        "total_functions": 40,
+        "avg_complexity": 2.85,
+        "max_complexity": 8,
+        "high_complexity_count": 0
+      },
+      "analyzers": {
+        "total_functions": 90,
+        "avg_complexity": 3.6555555555555554,
         "max_complexity": 15,
-        "high_complexity_count": 5
+        "high_complexity_count": 4
+      },
+      "utils": {
+        "total_functions": 38,
+        "avg_complexity": 4.421052631578948,
+        "max_complexity": 10,
+        "high_complexity_count": 0
       }
     },
     "high_complexity_functions": [
       {
         "function": "_calculate_lcom",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
         "line": 206,
         "complexity": 15,
@@ -118,8 +149,17 @@
         "class_name": "ClassMetricsAnalyzer"
       },
       {
+        "function": "main",
+        "module": "root",
+        "file": "/home/al3x/src/cobana/cobana/cli.py",
+        "line": 117,
+        "complexity": 13,
+        "category": "complex",
+        "class_name": null
+      },
+      {
         "function": "_analyze_class",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
         "line": 96,
         "complexity": 13,
@@ -127,26 +167,17 @@
         "class_name": "ClassMetricsAnalyzer"
       },
       {
-        "function": "main",
-        "module": "cobana",
-        "file": "/home/al3x/src/cobana/cobana/cli.py",
-        "line": 105,
-        "complexity": 12,
-        "category": "complex",
-        "class_name": null
-      },
-      {
         "function": "_update_results",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/complexity.py",
-        "line": 177,
+        "line": 176,
         "complexity": 12,
         "category": "complex",
         "class_name": "ComplexityAnalyzer"
       },
       {
         "function": "finalize_results",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_coupling.py",
         "line": 98,
         "complexity": 11,
@@ -157,582 +188,718 @@
     "per_file": [
       {
         "file": "/home/al3x/src/cobana/cobana/cli.py",
-        "module": "cobana",
-        "avg_complexity": 5.0,
-        "max_complexity": 12,
+        "module": "root",
+        "avg_complexity": 5.2,
+        "max_complexity": 13,
         "function_count": 5
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzer.py",
-        "module": "cobana",
+        "module": "root",
         "avg_complexity": 1.6666666666666667,
         "max_complexity": 2,
         "function_count": 9
       },
       {
         "file": "/home/al3x/src/cobana/cobana/report/json_generator.py",
-        "module": "cobana",
+        "module": "report",
         "avg_complexity": 1.5,
         "max_complexity": 2,
         "function_count": 4
       },
       {
         "file": "/home/al3x/src/cobana/cobana/report/md_generator.py",
-        "module": "cobana",
-        "avg_complexity": 3.142857142857143,
-        "max_complexity": 5,
-        "function_count": 7
+        "module": "report",
+        "avg_complexity": 4.133333333333334,
+        "max_complexity": 8,
+        "function_count": 15
+      },
+      {
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "module": "report",
+        "avg_complexity": 2.1904761904761907,
+        "max_complexity": 6,
+        "function_count": 21
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/complexity.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 4.625,
         "max_complexity": 12,
         "function_count": 8
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/maintainability.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 3.4285714285714284,
         "max_complexity": 6,
         "function_count": 7
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 5.8,
         "max_complexity": 15,
         "function_count": 10
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_coupling.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 5.333333333333333,
         "max_complexity": 11,
         "function_count": 6
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_size.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 3.5714285714285716,
         "max_complexity": 6,
         "function_count": 7
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/tech_debt.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 3.3076923076923075,
         "max_complexity": 9,
         "function_count": 13
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/__init__.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 1.8333333333333333,
         "max_complexity": 4,
         "function_count": 12
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_health.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 2.8181818181818183,
         "max_complexity": 5,
         "function_count": 11
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/db_coupling.py",
-        "module": "cobana",
-        "avg_complexity": 3.6666666666666665,
+        "module": "analyzers",
+        "avg_complexity": 4.2,
         "max_complexity": 7,
-        "function_count": 9
+        "function_count": 10
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_smells.py",
-        "module": "cobana",
+        "module": "analyzers",
         "avg_complexity": 2.5,
         "max_complexity": 8,
         "function_count": 6
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/config_utils.py",
-        "module": "cobana",
+        "module": "utils",
         "avg_complexity": 5.25,
         "max_complexity": 10,
         "function_count": 4
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/file_utils.py",
-        "module": "cobana",
-        "avg_complexity": 4.285714285714286,
+        "module": "utils",
+        "avg_complexity": 5.25,
         "max_complexity": 8,
-        "function_count": 7
+        "function_count": 8
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/ast_utils.py",
-        "module": "cobana",
+        "module": "utils",
         "avg_complexity": 4.666666666666667,
         "max_complexity": 9,
         "function_count": 12
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/module_detector.py",
-        "module": "cobana",
+        "module": "utils",
         "avg_complexity": 3.5,
         "max_complexity": 7,
         "function_count": 14
       }
-    ]
+    ],
+    "high_complexity_count": 5
   },
   "maintainability": {
-    "avg_mi": 71.99120970079784,
-    "total_files": 22,
+    "avg_mi": 69.33392520370894,
+    "total_files": 23,
     "distribution": {
-      "high_65_100": 12,
-      "moderate_20_64": 10,
+      "high_65_100": 10,
+      "moderate_20_64": 13,
       "low_0_19": 0
     },
     "by_module": {
-      "tests": {
-        "avg_mi": 100.0,
-        "file_count": 1,
+      "root": {
+        "avg_mi": 78.55066079991889,
+        "file_count": 3,
         "low_mi_count": 0
       },
-      "cobana": {
-        "avg_mi": 70.6574577817882,
-        "file_count": 21,
+      "report": {
+        "avg_mi": 77.60540749265213,
+        "file_count": 5,
+        "low_mi_count": 0
+      },
+      "analyzers": {
+        "avg_mi": 61.54760735214393,
+        "file_count": 10,
+        "low_mi_count": 0
+      },
+      "utils": {
+        "avg_mi": 71.10503726016978,
+        "file_count": 5,
         "low_mi_count": 0
       }
     },
     "low_maintainability_files": [],
     "per_file": [
       {
-        "file": "/home/al3x/src/cobana/tests/__init__.py",
-        "module": "tests",
-        "mi_score": 100.0,
-        "rank": "A"
-      },
-      {
         "file": "/home/al3x/src/cobana/cobana/cli.py",
-        "module": "cobana",
-        "mi_score": 59.89248742921711,
+        "module": "root",
+        "mi_score": 58.84796999115223,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzer.py",
-        "module": "cobana",
-        "mi_score": 77.06563589957018,
+        "module": "root",
+        "mi_score": 76.80401240860444,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/__init__.py",
-        "module": "cobana",
+        "module": "root",
         "mi_score": 100.0,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/report/json_generator.py",
-        "module": "cobana",
+        "module": "report",
         "mi_score": 100.0,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/report/md_generator.py",
-        "module": "cobana",
-        "mi_score": 65.1895338860712,
+        "module": "report",
+        "mi_score": 39.794462537175534,
         "rank": "A"
       },
       {
-        "file": "/home/al3x/src/cobana/cobana/report/__init__.py",
-        "module": "cobana",
+        "file": "/home/al3x/src/cobana/cobana/report/html_template.py",
+        "module": "report",
         "mi_score": 100.0,
         "rank": "A"
       },
       {
+        "file": "/home/al3x/src/cobana/cobana/report/__init__.py",
+        "module": "report",
+        "mi_score": 100.0,
+        "rank": "A"
+      },
+      {
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "module": "report",
+        "mi_score": 48.23257492608512,
+        "rank": "A"
+      },
+      {
         "file": "/home/al3x/src/cobana/cobana/analyzers/complexity.py",
-        "module": "cobana",
-        "mi_score": 59.62062058161061,
+        "module": "analyzers",
+        "mi_score": 59.13946219621678,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/maintainability.py",
-        "module": "cobana",
+        "module": "analyzers",
         "mi_score": 66.68196154561842,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
-        "module": "cobana",
+        "module": "analyzers",
         "mi_score": 53.687774852091245,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_coupling.py",
-        "module": "cobana",
+        "module": "analyzers",
         "mi_score": 63.169515437927004,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_size.py",
-        "module": "cobana",
+        "module": "analyzers",
         "mi_score": 60.33450914570272,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/tech_debt.py",
-        "module": "cobana",
+        "module": "analyzers",
         "mi_score": 52.70466071916423,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/__init__.py",
-        "module": "cobana",
+        "module": "analyzers",
         "mi_score": 74.56139282632819,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_health.py",
-        "module": "cobana",
-        "mi_score": 59.200732134172746,
+        "module": "analyzers",
+        "mi_score": 59.20477590164128,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/db_coupling.py",
-        "module": "cobana",
-        "mi_score": 58.459599830187884,
+        "module": "analyzers",
+        "mi_score": 55.13593832638203,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_smells.py",
-        "module": "cobana",
+        "module": "analyzers",
         "mi_score": 70.85608257036746,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/config_utils.py",
-        "module": "cobana",
+        "module": "utils",
         "mi_score": 71.960891218713,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/file_utils.py",
-        "module": "cobana",
-        "mi_score": 69.81542456663456,
+        "module": "utils",
+        "mi_score": 62.95850430796041,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/ast_utils.py",
-        "module": "cobana",
+        "module": "utils",
         "mi_score": 58.58394545897909,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/__init__.py",
-        "module": "cobana",
+        "module": "utils",
         "mi_score": 100.0,
         "rank": "A"
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/module_detector.py",
-        "module": "cobana",
+        "module": "utils",
         "mi_score": 62.021845315196416,
         "rank": "A"
       }
     ]
   },
   "code_size": {
-    "total_sloc": 2478,
-    "total_comments": 286,
-    "total_blank": 819,
-    "total_loc": 4293,
-    "comment_ratio": 6.662007919869555,
-    "file_count": 22,
+    "total_sloc": 3902,
+    "total_comments": 361,
+    "total_blank": 1048,
+    "total_loc": 6081,
+    "comment_ratio": 5.936523598092419,
+    "file_count": 23,
     "file_size_distribution": {
-      "small_0_100": 7,
-      "medium_101_500": 15,
-      "large_501_plus": 0
+      "small_0_100": 5,
+      "medium_101_500": 17,
+      "large_501_plus": 1
     },
     "by_module": {
-      "tests": {
-        "total_sloc": 0,
-        "file_count": 1,
-        "avg_file_size": 0.0,
-        "comment_ratio": 0.0,
-        "total_comments": 0,
-        "total_loc": 0
+      "root": {
+        "total_sloc": 362,
+        "file_count": 3,
+        "avg_file_size": 120.66666666666667,
+        "comment_ratio": 6.315789473684211,
+        "total_comments": 36,
+        "total_loc": 570
       },
-      "cobana": {
-        "total_sloc": 2478,
-        "file_count": 21,
-        "avg_file_size": 118.0,
-        "comment_ratio": 6.662007919869555,
-        "total_comments": 286,
-        "total_loc": 4293
+      "report": {
+        "total_sloc": 1418,
+        "file_count": 5,
+        "avg_file_size": 283.6,
+        "comment_ratio": 3.3003300330033,
+        "total_comments": 60,
+        "total_loc": 1818
+      },
+      "analyzers": {
+        "total_sloc": 1650,
+        "file_count": 10,
+        "avg_file_size": 165.0,
+        "comment_ratio": 8.044733044733045,
+        "total_comments": 223,
+        "total_loc": 2772
+      },
+      "utils": {
+        "total_sloc": 472,
+        "file_count": 5,
+        "avg_file_size": 94.4,
+        "comment_ratio": 4.5602605863192185,
+        "total_comments": 42,
+        "total_loc": 921
       }
     },
-    "large_files": [],
+    "large_files": [
+      {
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "module": "report",
+        "sloc": 666,
+        "comments": 25,
+        "comment_ratio": 3.0193236714975846
+      }
+    ],
     "large_functions": [
       {
-        "function": "get_markdown",
-        "module": "cobana",
-        "file": "/home/al3x/src/cobana/cobana/report/md_generator.py",
-        "sloc": 119,
-        "line": 41
+        "function": "create_parser",
+        "module": "root",
+        "file": "/home/al3x/src/cobana/cobana/cli.py",
+        "sloc": 96,
+        "line": 19
+      },
+      {
+        "function": "_create_code_smells_template",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "sloc": 95,
+        "line": 639
+      },
+      {
+        "function": "_create_technical_debt_template",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "sloc": 90,
+        "line": 735
       },
       {
         "function": "_analyze_class",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
         "sloc": 90,
         "line": 96
       },
       {
         "function": "finalize_results",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_coupling.py",
         "sloc": 90,
         "line": 98
       },
       {
-        "function": "create_parser",
-        "module": "cobana",
-        "file": "/home/al3x/src/cobana/cobana/cli.py",
-        "sloc": 85,
-        "line": 18
+        "function": "get_markdown",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/md_generator.py",
+        "sloc": 88,
+        "line": 41
       },
       {
         "function": "_categorize_operations",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/db_coupling.py",
-        "sloc": 84,
-        "line": 148
+        "sloc": 87,
+        "line": 216
       },
       {
         "function": "main",
-        "module": "cobana",
+        "module": "root",
         "file": "/home/al3x/src/cobana/cobana/cli.py",
-        "sloc": 75,
-        "line": 105
+        "sloc": 79,
+        "line": 117
       },
       {
         "function": "_calculate_module_health",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_health.py",
-        "sloc": 72,
-        "line": 97
+        "sloc": 76,
+        "line": 101
+      },
+      {
+        "function": "_create_complexity_template",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "sloc": 74,
+        "line": 442
+      },
+      {
+        "function": "_create_db_coupling_template",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "sloc": 73,
+        "line": 368
       },
       {
         "function": "analyze_file",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_smells.py",
         "sloc": 70,
         "line": 46
       },
       {
         "function": "_process_complexity_blocks",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/complexity.py",
-        "sloc": 69,
+        "sloc": 68,
         "line": 88
       },
       {
         "function": "_calculate_module_debt",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/tech_debt.py",
         "sloc": 65,
         "line": 194
       },
       {
         "function": "print_summary",
-        "module": "cobana",
+        "module": "root",
         "file": "/home/al3x/src/cobana/cobana/cli.py",
         "sloc": 64,
-        "line": 182
+        "line": 198
       },
       {
         "function": "_update_results",
-        "module": "cobana",
+        "module": "analyzers",
+        "file": "/home/al3x/src/cobana/cobana/analyzers/complexity.py",
+        "sloc": 64,
+        "line": 176
+      },
+      {
+        "function": "_create_maintainability_template",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "sloc": 63,
+        "line": 517
+      },
+      {
+        "function": "_update_results",
+        "module": "analyzers",
+        "file": "/home/al3x/src/cobana/cobana/analyzers/db_coupling.py",
+        "sloc": 63,
+        "line": 326
+      },
+      {
+        "function": "_update_results",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_size.py",
         "sloc": 62,
         "line": 132
       },
       {
         "function": "calculate",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_health.py",
-        "sloc": 58,
+        "sloc": 62,
         "line": 38
       },
       {
-        "function": "_update_results",
-        "module": "cobana",
-        "file": "/home/al3x/src/cobana/cobana/analyzers/db_coupling.py",
-        "sloc": 57,
-        "line": 255
+        "function": "_prepare_complexity_data",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "sloc": 59,
+        "line": 260
       },
       {
-        "function": "_update_results",
-        "module": "cobana",
-        "file": "/home/al3x/src/cobana/cobana/analyzers/complexity.py",
+        "function": "_prepare_test_data",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "sloc": 58,
+        "line": 151
+      },
+      {
+        "function": "_add_module_breakdown",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/md_generator.py",
+        "sloc": 57,
+        "line": 390
+      },
+      {
+        "function": "_create_tests_template",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "sloc": 57,
+        "line": 581
+      },
+      {
+        "function": "__init__",
+        "module": "analyzers",
+        "file": "/home/al3x/src/cobana/cobana/analyzers/db_coupling.py",
         "sloc": 56,
-        "line": 177
+        "line": 73
       }
     ],
     "low_documentation": [
       {
+        "file": "/home/al3x/src/cobana/cobana/report/html_template.py",
+        "module": "report",
+        "comment_ratio": 0.0,
+        "sloc": 381
+      },
+      {
         "file": "/home/al3x/src/cobana/cobana/analyzers/__init__.py",
-        "module": "cobana",
+        "module": "analyzers",
         "comment_ratio": 0.7092198581560284,
         "sloc": 56
       },
       {
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "module": "report",
+        "comment_ratio": 3.0193236714975846,
+        "sloc": 666
+      },
+      {
         "file": "/home/al3x/src/cobana/cobana/utils/module_detector.py",
-        "module": "cobana",
+        "module": "utils",
         "comment_ratio": 3.1372549019607843,
         "sloc": 127
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/ast_utils.py",
-        "module": "cobana",
+        "module": "utils",
         "comment_ratio": 3.4090909090909087,
         "sloc": 130
       },
       {
-        "file": "/home/al3x/src/cobana/cobana/utils/file_utils.py",
-        "module": "cobana",
-        "comment_ratio": 3.6585365853658534,
-        "sloc": 78
+        "file": "/home/al3x/src/cobana/cobana/cli.py",
+        "module": "root",
+        "comment_ratio": 4.901960784313726,
+        "sloc": 205
       }
     ],
     "per_file": [
       {
-        "file": "/home/al3x/src/cobana/tests/__init__.py",
-        "module": "tests",
-        "sloc": 0,
-        "comment_ratio": 0.0
-      },
-      {
         "file": "/home/al3x/src/cobana/cobana/cli.py",
-        "module": "cobana",
-        "sloc": 191,
-        "comment_ratio": 5.172413793103448
+        "module": "root",
+        "sloc": 205,
+        "comment_ratio": 4.901960784313726
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzer.py",
-        "module": "cobana",
-        "sloc": 146,
-        "comment_ratio": 8.264462809917356
+        "module": "root",
+        "sloc": 153,
+        "comment_ratio": 8.366533864541832
       },
       {
         "file": "/home/al3x/src/cobana/cobana/__init__.py",
-        "module": "cobana",
+        "module": "root",
         "sloc": 4,
         "comment_ratio": 0.0
       },
       {
         "file": "/home/al3x/src/cobana/cobana/report/json_generator.py",
-        "module": "cobana",
+        "module": "report",
         "sloc": 27,
         "comment_ratio": 3.1746031746031744
       },
       {
         "file": "/home/al3x/src/cobana/cobana/report/md_generator.py",
-        "module": "cobana",
-        "sloc": 134,
-        "comment_ratio": 6.63265306122449
+        "module": "report",
+        "sloc": 344,
+        "comment_ratio": 6.832298136645963
+      },
+      {
+        "file": "/home/al3x/src/cobana/cobana/report/html_template.py",
+        "module": "report",
+        "sloc": 381,
+        "comment_ratio": 0.0
       },
       {
         "file": "/home/al3x/src/cobana/cobana/report/__init__.py",
-        "module": "cobana",
+        "module": "report",
         "sloc": 0,
         "comment_ratio": 0.0
       },
       {
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "module": "report",
+        "sloc": 666,
+        "comment_ratio": 3.0193236714975846
+      },
+      {
         "file": "/home/al3x/src/cobana/cobana/analyzers/complexity.py",
-        "module": "cobana",
-        "sloc": 176,
-        "comment_ratio": 5.985915492957746
+        "module": "analyzers",
+        "sloc": 190,
+        "comment_ratio": 6.0
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/maintainability.py",
-        "module": "cobana",
+        "module": "analyzers",
         "sloc": 111,
         "comment_ratio": 8.45771144278607
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
-        "module": "cobana",
+        "module": "analyzers",
         "sloc": 213,
         "comment_ratio": 7.967032967032966
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_coupling.py",
-        "module": "cobana",
+        "module": "analyzers",
         "sloc": 120,
         "comment_ratio": 9.45273631840796
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_size.py",
-        "module": "cobana",
+        "module": "analyzers",
         "sloc": 165,
         "comment_ratio": 6.5891472868217065
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/tech_debt.py",
-        "module": "cobana",
+        "module": "analyzers",
         "sloc": 197,
         "comment_ratio": 6.349206349206349
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/__init__.py",
-        "module": "cobana",
+        "module": "analyzers",
         "sloc": 56,
         "comment_ratio": 0.7092198581560284
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_health.py",
-        "module": "cobana",
-        "sloc": 184,
-        "comment_ratio": 12.316715542521994
+        "module": "analyzers",
+        "sloc": 190,
+        "comment_ratio": 12.35632183908046
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/db_coupling.py",
-        "module": "cobana",
-        "sloc": 207,
-        "comment_ratio": 9.142857142857142
+        "module": "analyzers",
+        "sloc": 297,
+        "comment_ratio": 10.560344827586206
       },
       {
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_smells.py",
-        "module": "cobana",
+        "module": "analyzers",
         "sloc": 111,
         "comment_ratio": 5.555555555555555
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/config_utils.py",
-        "module": "cobana",
+        "module": "utils",
         "sloc": 101,
         "comment_ratio": 5.263157894736842
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/file_utils.py",
-        "module": "cobana",
-        "sloc": 78,
-        "comment_ratio": 3.6585365853658534
+        "module": "utils",
+        "sloc": 114,
+        "comment_ratio": 6.926406926406926
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/ast_utils.py",
-        "module": "cobana",
+        "module": "utils",
         "sloc": 130,
         "comment_ratio": 3.4090909090909087
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/__init__.py",
-        "module": "cobana",
+        "module": "utils",
         "sloc": 0,
         "comment_ratio": 0.0
       },
       {
         "file": "/home/al3x/src/cobana/cobana/utils/module_detector.py",
-        "module": "cobana",
+        "module": "utils",
         "sloc": 127,
         "comment_ratio": 3.1372549019607843
       }
@@ -751,9 +918,9 @@
     },
     "by_module": {},
     "testability": {
-      "total_functions": 60,
+      "total_functions": 65,
       "functions_with_db_access": 0,
-      "functions_with_business_logic": 45,
+      "functions_with_business_logic": 49,
       "functions_mixing_both": 0,
       "testability_score": 100.0,
       "untestable_functions": []
@@ -761,13 +928,13 @@
     "test_details": []
   },
   "module_coupling": {
-    "total_modules": 2,
+    "total_modules": 4,
     "avg_afferent_coupling": 0.0,
     "avg_efferent_coupling": 0.0,
     "avg_instability": 0.0,
     "per_module": {
-      "tests": {
-        "module": "tests",
+      "__pycache__": {
+        "module": "__pycache__",
         "afferent_coupling": 0,
         "efferent_coupling": 0,
         "instability": 0.0,
@@ -775,8 +942,26 @@
         "imported_by": [],
         "imports": []
       },
-      "cobana": {
-        "module": "cobana",
+      "report": {
+        "module": "report",
+        "afferent_coupling": 0,
+        "efferent_coupling": 0,
+        "instability": 0.0,
+        "stability_category": "stable",
+        "imported_by": [],
+        "imports": []
+      },
+      "analyzers": {
+        "module": "analyzers",
+        "afferent_coupling": 0,
+        "efferent_coupling": 0,
+        "instability": 0.0,
+        "stability_category": "stable",
+        "imported_by": [],
+        "imports": []
+      },
+      "utils": {
+        "module": "utils",
         "afferent_coupling": 0,
         "efferent_coupling": 0,
         "instability": 0.0,
@@ -787,11 +972,19 @@
     },
     "stable_modules": [
       {
-        "module": "tests",
+        "module": "__pycache__",
         "instability": 0.0
       },
       {
-        "module": "cobana",
+        "module": "report",
+        "instability": 0.0
+      },
+      {
+        "module": "analyzers",
+        "instability": 0.0
+      },
+      {
+        "module": "utils",
         "instability": 0.0
       }
     ],
@@ -799,29 +992,49 @@
     "high_fanout_modules": [],
     "dependency_graph": {
       "nodes": [
-        "tests",
-        "cobana"
+        "__pycache__",
+        "report",
+        "analyzers",
+        "utils"
       ],
       "edges": []
     }
   },
   "class_metrics": {
-    "total_classes": 20,
-    "avg_lcom": 1.35,
-    "avg_wmc": 20.1,
-    "avg_methods_per_class": 5.75,
+    "total_classes": 22,
+    "avg_lcom": 1.3636363636363635,
+    "avg_wmc": 22.40909090909091,
+    "avg_methods_per_class": 6.5,
     "by_module": {
-      "cobana": {
-        "total_classes": 20,
-        "avg_lcom": 1.35,
-        "avg_wmc": 20.1,
+      "root": {
+        "total_classes": 1,
+        "avg_lcom": 1.0,
+        "avg_wmc": 13.0,
+        "god_classes_count": 0
+      },
+      "report": {
+        "total_classes": 4,
+        "avg_lcom": 1.5,
+        "avg_wmc": 25.25,
         "god_classes_count": 1
+      },
+      "analyzers": {
+        "total_classes": 13,
+        "avg_lcom": 1.3846153846153846,
+        "avg_wmc": 21.076923076923077,
+        "god_classes_count": 1
+      },
+      "utils": {
+        "total_classes": 4,
+        "avg_lcom": 1.25,
+        "avg_wmc": 26.25,
+        "god_classes_count": 0
       }
     },
     "per_class": [
       {
         "class": "CodebaseAnalyzer",
-        "module": "cobana",
+        "module": "root",
         "file": "/home/al3x/src/cobana/cobana/analyzer.py",
         "line": 29,
         "methods": 8,
@@ -832,7 +1045,7 @@
       },
       {
         "class": "JSONReportGenerator",
-        "module": "cobana",
+        "module": "report",
         "file": "/home/al3x/src/cobana/cobana/report/json_generator.py",
         "line": 15,
         "methods": 3,
@@ -843,18 +1056,40 @@
       },
       {
         "class": "MarkdownReportGenerator",
-        "module": "cobana",
+        "module": "report",
         "file": "/home/al3x/src/cobana/cobana/report/md_generator.py",
         "line": 14,
-        "methods": 6,
-        "attributes": 7,
+        "methods": 14,
+        "attributes": 15,
         "lcom": 2,
-        "wmc": 18,
+        "wmc": 57,
+        "cohesion_level": "moderate"
+      },
+      {
+        "class": "MemoryLoader",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "line": 21,
+        "methods": 2,
+        "attributes": 1,
+        "lcom": 1,
+        "wmc": 3,
+        "cohesion_level": "high"
+      },
+      {
+        "class": "HtmlReportGenerator",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/html_generator.py",
+        "line": 37,
+        "methods": 17,
+        "attributes": 17,
+        "lcom": 2,
+        "wmc": 37,
         "cohesion_level": "moderate"
       },
       {
         "class": "ComplexityAnalyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/complexity.py",
         "line": 17,
         "methods": 7,
@@ -865,7 +1100,7 @@
       },
       {
         "class": "MaintainabilityAnalyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/maintainability.py",
         "line": 17,
         "methods": 6,
@@ -876,7 +1111,7 @@
       },
       {
         "class": "ClassMetricsAnalyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
         "line": 19,
         "methods": 9,
@@ -887,7 +1122,7 @@
       },
       {
         "class": "ModuleCouplingAnalyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_coupling.py",
         "line": 17,
         "methods": 5,
@@ -898,7 +1133,7 @@
       },
       {
         "class": "CodeSizeAnalyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_size.py",
         "line": 18,
         "methods": 6,
@@ -909,7 +1144,7 @@
       },
       {
         "class": "TechnicalDebtCalculator",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/tech_debt.py",
         "line": 13,
         "methods": 12,
@@ -920,7 +1155,7 @@
       },
       {
         "class": "Analyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/__init__.py",
         "line": 12,
         "methods": 3,
@@ -931,7 +1166,7 @@
       },
       {
         "class": "FileLocation",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/__init__.py",
         "line": 56,
         "methods": 1,
@@ -942,7 +1177,7 @@
       },
       {
         "class": "FunctionInfo",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/__init__.py",
         "line": 67,
         "methods": 1,
@@ -953,7 +1188,7 @@
       },
       {
         "class": "ModuleStats",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/__init__.py",
         "line": 83,
         "methods": 1,
@@ -964,7 +1199,7 @@
       },
       {
         "class": "ModuleHealthCalculator",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/module_health.py",
         "line": 12,
         "methods": 10,
@@ -975,18 +1210,18 @@
       },
       {
         "class": "DatabaseCouplingAnalyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/db_coupling.py",
-        "line": 32,
-        "methods": 8,
-        "attributes": 10,
+        "line": 70,
+        "methods": 9,
+        "attributes": 12,
         "lcom": 1,
-        "wmc": 29,
+        "wmc": 37,
         "cohesion_level": "high"
       },
       {
         "class": "CodeSmellsAnalyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/code_smells.py",
         "line": 17,
         "methods": 5,
@@ -997,18 +1232,18 @@
       },
       {
         "class": "FileScanner",
-        "module": "cobana",
+        "module": "utils",
         "file": "/home/al3x/src/cobana/cobana/utils/file_utils.py",
         "line": 14,
         "methods": 4,
-        "attributes": 8,
+        "attributes": 9,
         "lcom": 1,
-        "wmc": 18,
+        "wmc": 22,
         "cohesion_level": "high"
       },
       {
         "class": "ASTParser",
-        "module": "cobana",
+        "module": "utils",
         "file": "/home/al3x/src/cobana/cobana/utils/ast_utils.py",
         "line": 14,
         "methods": 8,
@@ -1019,7 +1254,7 @@
       },
       {
         "class": "Module",
-        "module": "cobana",
+        "module": "utils",
         "file": "/home/al3x/src/cobana/cobana/utils/module_detector.py",
         "line": 13,
         "methods": 4,
@@ -1030,7 +1265,7 @@
       },
       {
         "class": "ModuleDetector",
-        "module": "cobana",
+        "module": "utils",
         "file": "/home/al3x/src/cobana/cobana/utils/module_detector.py",
         "line": 49,
         "methods": 8,
@@ -1042,8 +1277,21 @@
     ],
     "god_classes": [
       {
+        "class": "MarkdownReportGenerator",
+        "module": "report",
+        "file": "/home/al3x/src/cobana/cobana/report/md_generator.py",
+        "line": 14,
+        "reasons": [
+          "WMC 57"
+        ],
+        "severity": "high",
+        "methods": 14,
+        "wmc": 57,
+        "lcom": 2
+      },
+      {
         "class": "ClassMetricsAnalyzer",
-        "module": "cobana",
+        "module": "analyzers",
         "file": "/home/al3x/src/cobana/cobana/analyzers/class_metrics.py",
         "line": 19,
         "reasons": [
@@ -1058,120 +1306,202 @@
     "low_cohesion_classes": []
   },
   "code_smells": {
-    "total_smells": 21,
+    "total_smells": 31,
     "by_module": {
-      "cobana": {
-        "long_methods": 15,
+      "root": {
+        "long_methods": 3,
+        "long_parameter_lists": 0,
+        "deep_nesting": 0,
+        "total_smells": 3
+      },
+      "report": {
+        "long_methods": 10,
+        "long_parameter_lists": 0,
+        "deep_nesting": 0,
+        "total_smells": 10
+      },
+      "analyzers": {
+        "long_methods": 12,
         "long_parameter_lists": 5,
         "deep_nesting": 1,
-        "total_smells": 21
+        "total_smells": 18
       }
     },
     "long_methods": [
       {
         "type": "long_method",
-        "function": "get_markdown",
-        "sloc": 119,
-        "line": 41,
-        "module": "cobana"
+        "function": "create_parser",
+        "sloc": 96,
+        "line": 19,
+        "module": "root"
+      },
+      {
+        "type": "long_method",
+        "function": "_create_code_smells_template",
+        "sloc": 95,
+        "line": 639,
+        "module": "report"
+      },
+      {
+        "type": "long_method",
+        "function": "_create_technical_debt_template",
+        "sloc": 90,
+        "line": 735,
+        "module": "report"
       },
       {
         "type": "long_method",
         "function": "_analyze_class",
         "sloc": 90,
         "line": 96,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_method",
         "function": "finalize_results",
         "sloc": 90,
         "line": 98,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_method",
-        "function": "create_parser",
-        "sloc": 85,
-        "line": 18,
-        "module": "cobana"
+        "function": "get_markdown",
+        "sloc": 88,
+        "line": 41,
+        "module": "report"
       },
       {
         "type": "long_method",
         "function": "_categorize_operations",
-        "sloc": 84,
-        "line": 148,
-        "module": "cobana"
+        "sloc": 87,
+        "line": 216,
+        "module": "analyzers"
       },
       {
         "type": "long_method",
         "function": "main",
-        "sloc": 75,
-        "line": 105,
-        "module": "cobana"
+        "sloc": 79,
+        "line": 117,
+        "module": "root"
       },
       {
         "type": "long_method",
         "function": "_calculate_module_health",
-        "sloc": 72,
-        "line": 97,
-        "module": "cobana"
+        "sloc": 76,
+        "line": 101,
+        "module": "analyzers"
+      },
+      {
+        "type": "long_method",
+        "function": "_create_complexity_template",
+        "sloc": 74,
+        "line": 442,
+        "module": "report"
+      },
+      {
+        "type": "long_method",
+        "function": "_create_db_coupling_template",
+        "sloc": 73,
+        "line": 368,
+        "module": "report"
       },
       {
         "type": "long_method",
         "function": "analyze_file",
         "sloc": 70,
         "line": 46,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_method",
         "function": "_process_complexity_blocks",
-        "sloc": 69,
+        "sloc": 68,
         "line": 88,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_method",
         "function": "_calculate_module_debt",
         "sloc": 65,
         "line": 194,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_method",
         "function": "print_summary",
         "sloc": 64,
-        "line": 182,
-        "module": "cobana"
+        "line": 198,
+        "module": "root"
+      },
+      {
+        "type": "long_method",
+        "function": "_update_results",
+        "sloc": 64,
+        "line": 176,
+        "module": "analyzers"
+      },
+      {
+        "type": "long_method",
+        "function": "_create_maintainability_template",
+        "sloc": 63,
+        "line": 517,
+        "module": "report"
+      },
+      {
+        "type": "long_method",
+        "function": "_update_results",
+        "sloc": 63,
+        "line": 326,
+        "module": "analyzers"
       },
       {
         "type": "long_method",
         "function": "_update_results",
         "sloc": 62,
         "line": 132,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_method",
         "function": "calculate",
-        "sloc": 58,
+        "sloc": 62,
         "line": 38,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_method",
-        "function": "_update_results",
+        "function": "_prepare_complexity_data",
+        "sloc": 59,
+        "line": 260,
+        "module": "report"
+      },
+      {
+        "type": "long_method",
+        "function": "_prepare_test_data",
+        "sloc": 58,
+        "line": 151,
+        "module": "report"
+      },
+      {
+        "type": "long_method",
+        "function": "_add_module_breakdown",
         "sloc": 57,
-        "line": 255,
-        "module": "cobana"
+        "line": 390,
+        "module": "report"
       },
       {
         "type": "long_method",
-        "function": "_update_results",
+        "function": "_create_tests_template",
+        "sloc": 57,
+        "line": 581,
+        "module": "report"
+      },
+      {
+        "type": "long_method",
+        "function": "__init__",
         "sloc": 56,
-        "line": 177,
-        "module": "cobana"
+        "line": 73,
+        "module": "analyzers"
       }
     ],
     "long_parameter_lists": [
@@ -1191,7 +1521,7 @@
           "code_size_results"
         ],
         "line": 38,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_parameter_list",
@@ -1208,8 +1538,8 @@
           "tech_debt_results",
           "code_size_results"
         ],
-        "line": 97,
-        "module": "cobana"
+        "line": 101,
+        "module": "analyzers"
       },
       {
         "type": "long_parameter_list",
@@ -1225,7 +1555,7 @@
           "code_smells_results"
         ],
         "line": 44,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_parameter_list",
@@ -1241,7 +1571,7 @@
           "code_smells_results"
         ],
         "line": 194,
-        "module": "cobana"
+        "module": "analyzers"
       },
       {
         "type": "long_parameter_list",
@@ -1256,7 +1586,7 @@
           "module_name"
         ],
         "line": 96,
-        "module": "cobana"
+        "module": "analyzers"
       }
     ],
     "deep_nesting": [
@@ -1265,36 +1595,48 @@
         "function": "_calculate_lcom",
         "max_depth": 5,
         "line": 206,
-        "module": "cobana"
+        "module": "analyzers"
       }
     ],
     "duplicate_code": []
   },
   "technical_debt": {
-    "total_remediation_hours": 15.75,
-    "total_remediation_days": 1.96875,
-    "development_cost_hours": 247.8,
-    "debt_ratio": 6.3559322033898304,
+    "total_remediation_hours": 24.75,
+    "total_remediation_days": 3.09375,
+    "development_cost_hours": 390.20000000000005,
+    "debt_ratio": 6.342901076371091,
     "sqale_rating": "B",
     "debt_breakdown": {
       "complexity": 2.5,
       "maintainability": 0.0,
       "db_coupling": 0.0,
-      "class_design": 4.0,
-      "code_smells": 9.25
+      "class_design": 8.0,
+      "code_smells": 14.25
     },
     "by_module": {
-      "tests": {
+      "root": {
+        "debt_hours": 2.0,
+        "debt_ratio": 5.524861878453039,
+        "sqale_rating": "B",
+        "sloc": 362
+      },
+      "report": {
+        "debt_hours": 9.0,
+        "debt_ratio": 6.346967559943582,
+        "sqale_rating": "B",
+        "sloc": 1418
+      },
+      "analyzers": {
+        "debt_hours": 13.75,
+        "debt_ratio": 8.333333333333332,
+        "sqale_rating": "B",
+        "sloc": 1650
+      },
+      "utils": {
         "debt_hours": 0.0,
         "debt_ratio": 0.0,
         "sqale_rating": "A",
-        "sloc": 0
-      },
-      "cobana": {
-        "debt_hours": 15.75,
-        "debt_ratio": 6.3559322033898304,
-        "sqale_rating": "B",
-        "sloc": 2478
+        "sloc": 472
       }
     },
     "top_debt_files": [],
@@ -1320,16 +1662,16 @@
         "total_hours": 0.0
       },
       "god_class": {
-        "count": 1,
-        "total_hours": 4.0
+        "count": 2,
+        "total_hours": 8.0
       },
       "low_cohesion": {
         "count": 0,
         "total_hours": 0.0
       },
       "long_method": {
-        "count": 15,
-        "total_hours": 7.5
+        "count": 25,
+        "total_hours": 12.5
       },
       "long_parameter_list": {
         "count": 5,
@@ -1342,27 +1684,63 @@
     }
   },
   "module_health": {
-    "overall_health": 74.91867305820969,
+    "overall_health": 77.70159532227197,
     "by_module": {
-      "cobana": {
-        "module": "cobana",
-        "score": 74.91867305820969,
+      "report": {
+        "module": "report",
+        "score": 78.484198564821,
         "category": "good",
         "components": {
           "coupling": 100.0,
-          "complexity": 86.98675496688742,
-          "maintainability": 70.6574577817882,
+          "complexity": 90.75,
+          "maintainability": 77.60540749265213,
           "testability": 50.0,
-          "smells": 15.254237288135585,
-          "debt": 87.28813559322035
+          "smells": 29.478138222849083,
+          "debt": 87.30606488011284
+        }
+      },
+      "analyzers": {
+        "module": "analyzers",
+        "score": 71.3206325815399,
+        "category": "good",
+        "components": {
+          "coupling": 100.0,
+          "complexity": 86.72222222222223,
+          "maintainability": 61.54760735214393,
+          "testability": 50.0,
+          "smells": 0,
+          "debt": 83.33333333333334
+        }
+      },
+      "utils": {
+        "module": "utils",
+        "score": 83.29995482045501,
+        "category": "excellent",
+        "components": {
+          "coupling": 100.0,
+          "complexity": 82.89473684210526,
+          "maintainability": 71.10503726016978,
+          "testability": 50.0,
+          "smells": 100.0,
+          "debt": 100.0
         }
       }
     },
     "module_rankings": [
       {
-        "module": "cobana",
-        "score": 74.91867305820969,
+        "module": "analyzers",
+        "score": 71.3206325815399,
         "category": "good"
+      },
+      {
+        "module": "report",
+        "score": 78.484198564821,
+        "category": "good"
+      },
+      {
+        "module": "utils",
+        "score": 83.29995482045501,
+        "category": "excellent"
       }
     ]
   }

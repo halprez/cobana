@@ -21,6 +21,12 @@ module_detection:
   #     path: "promotions"
   #     description: "Promotion matching and application"
 
+# Maximum File Analysis Depth (optional)
+# Limits how deep into subdirectories the analysis will scan for Python files
+# Depth 1 = only root files, 2 = root + 1 level deep, 3 = root + 2 levels, etc.
+# Leave commented out for unlimited depth (analyze all files)
+# max_depth: 3
+
 # Table Ownership Mapping
 # Maps database tables/collections to owning services
 # Used to identify coupling violations
