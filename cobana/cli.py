@@ -11,6 +11,7 @@ import logging
 from cobana.analyzer import CodebaseAnalyzer
 from cobana.report.json_generator import JSONReportGenerator
 from cobana.report.md_generator import MarkdownReportGenerator
+from cobana.report.html_generator import HtmlReportGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +29,10 @@ def create_parser() -> argparse.ArgumentParser:
         epilog="""
 Examples:
   cobana /path/to/backend
-  cobana /path/to/backend --config custom.yaml --output analysis.html
-  cobana /path/to/backend --service-name claims --json data.json --verbose
-  cobana /path/to/backend --markdown summary.md
+  cobana /path/to/backend --output report.html
+  cobana /path/to/backend --config custom.yaml --output analysis.html --json data.json
+  cobana /path/to/backend --service-name claims --markdown summary.md --verbose
+  cobana /path/to/backend --html report.html --json data.json --markdown summary.md
         """
     )
 
@@ -51,9 +53,11 @@ Examples:
 
     parser.add_argument(
         '--output',
+        '--html',
         type=str,
         metavar='FILE',
-        help='HTML report output (default: report.html) [NOT YET IMPLEMENTED]'
+        dest='output',
+        help='HTML report output (optional)'
     )
 
     parser.add_argument(
@@ -157,24 +161,25 @@ def main() -> int:
         print_summary(results)
 
         # Generate reports
+        if args.output:
+            html_generator = HtmlReportGenerator(results)
+            html_generator.generate(args.output)
+            print(f"\n✅ HTML report saved to: {args.output}")
+
         if args.json:
             json_generator = JSONReportGenerator(results)
             json_generator.generate(args.json)
-            print(f"\n✅ JSON report saved to: {args.json}")
+            print(f"✅ JSON report saved to: {args.json}")
 
         if args.markdown:
             md_generator = MarkdownReportGenerator(results)
             md_generator.generate(args.markdown)
             print(f"✅ Markdown summary saved to: {args.markdown}")
 
-        if args.output:
-            print(f"\n⚠️  HTML report generation not yet implemented")
-            print(f"   (Planned for future release)")
-
         # Suggest next steps if no output specified
         if not any([args.json, args.markdown, args.output]):
-            print(f"\n💡 Tip: Use --json or --markdown to save detailed reports")
-            print(f"   Example: cobana {args.path} --json analysis.json --markdown summary.md")
+            print(f"\n💡 Tip: Use --output, --json, or --markdown to save detailed reports")
+            print(f"   Example: cobana {args.path} --output report.html --json analysis.json")
 
         return 0
 
