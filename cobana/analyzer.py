@@ -69,7 +69,8 @@ class CodebaseAnalyzer:
         self.scanner = FileScanner(
             self.root_path,
             self.config.get('exclude_patterns', []),
-            verbose
+            verbose,
+            self.config.get('max_depth')
         )
 
         # Initialize all analyzers
@@ -102,6 +103,14 @@ class CodebaseAnalyzer:
             Complete analysis results dictionary
         """
         logger.info(f"Starting analysis of {self.root_path}")
+
+        # Refresh scanner with current config (in case config was modified after init)
+        self.scanner = FileScanner(
+            self.root_path,
+            self.config.get('exclude_patterns', []),
+            self.verbose,
+            self.config.get('max_depth')
+        )
 
         # Step 1: Detect modules
         self.modules = self.module_detector.detect_modules()

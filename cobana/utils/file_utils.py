@@ -18,7 +18,8 @@ class FileScanner:
         self,
         root_path: Path | str,
         exclude_patterns: list[str] | None = None,
-        verbose: bool = False
+        verbose: bool = False,
+        max_depth: int | None = None
     ):
         """Initialize file scanner.
 
@@ -26,10 +27,13 @@ class FileScanner:
             root_path: Root directory to scan
             exclude_patterns: List of glob patterns to exclude
             verbose: Enable verbose logging
+            max_depth: Maximum folder depth to scan (None = unlimited)
+                      Depth 1 = only files in root, 2 = root + 1 level, etc.
         """
         self.root_path = Path(root_path).resolve()
         self.exclude_patterns = exclude_patterns or []
         self.verbose = verbose
+        self.max_depth = max_depth
         self.files_scanned = 0
         self.files_skipped = 0
         self.skipped_files: list[tuple[Path, str]] = []  # (path, reason)
@@ -81,6 +85,14 @@ class FileScanner:
 
         rel_path_str = str(rel_path)
 
+        # Check depth limit
+        if self.max_depth is not None:
+            # Count folder depth from root
+            # e.g., "file.py" = depth 1, "folder/file.py" = depth 2, "folder/sub/file.py" = depth 3
+            depth = len(rel_path.parent.parts) + 1
+            if depth > self.max_depth:
+                return False
+
         # Check against exclude patterns
         for pattern in self.exclude_patterns:
             if fnmatch.fnmatch(rel_path_str, pattern):
@@ -104,6 +116,13 @@ class FileScanner:
 
         rel_path_str = str(rel_path)
 
+        # Check depth
+        if self.max_depth is not None:
+            depth = len(rel_path.parent.parts) + 1
+            if depth > self.max_depth:
+                return f"exceeds max depth ({depth} > {self.max_depth})"
+
+        # Check patterns
         for pattern in self.exclude_patterns:
             if fnmatch.fnmatch(rel_path_str, pattern):
                 return f"matched exclude pattern: {pattern}"
@@ -122,12 +141,20 @@ def read_file_safely(file_path: Path) -> str | None:
     Returns:
         File content as string, or None if reading failed
     """
+    # Check if file exists first
+    if not file_path.exists():
+        logger.error(f"File not found: {file_path}")
+        return None
+
     # Try UTF-8 first
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             return f.read()
     except UnicodeDecodeError:
         logger.warning(f"UTF-8 decode failed for {file_path}, trying latin-1")
+    except Exception as e:
+        logger.error(f"Failed to read {file_path}: {e}")
+        return None
 
     # Fallback to latin-1
     try:

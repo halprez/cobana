@@ -88,6 +88,14 @@ Examples:
     )
 
     parser.add_argument(
+        '--max-depth',
+        type=int,
+        metavar='N',
+        help='Maximum folder depth for file analysis (default: unlimited). '
+             'Depth 1 = only root files, 2 = root + 1 level, 3 = root + 2 levels, etc.'
+    )
+
+    parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Show progress during analysis'
@@ -138,6 +146,9 @@ def main() -> int:
 
         if args.module_depth:
             analyzer.config['module_detection']['depth'] = args.module_depth
+
+        if args.max_depth:
+            analyzer.config['max_depth'] = args.max_depth
 
         # Run analysis
         results = analyzer.analyze()
