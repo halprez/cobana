@@ -37,13 +37,15 @@ class MemoryLoader(BaseLoader):
 class HtmlReportGenerator:
     """Generates HTML reports from analysis results."""
 
-    def __init__(self, results: dict[str, Any]):
+    def __init__(self, results: dict[str, Any], max_items: int = 0):
         """Initialize HTML report generator.
 
         Args:
             results: Analysis results dictionary
+            max_items: Maximum number of items to display in lists (0 = unlimited)
         """
         self.results = results
+        self.max_items = max_items
         self.templates = self._create_templates()
         self.env = Environment(loader=MemoryLoader(self.templates))
         # Add custom filters
@@ -114,6 +116,7 @@ class HtmlReportGenerator:
             "technical_debt": self._prepare_technical_debt_data(),
             "module_health": module_health_dict,
             "module_rankings": self._prepare_module_rankings(),
+            "max_items": self.max_items,
         }
 
         return template.render(**context)
@@ -626,7 +629,7 @@ class HtmlReportGenerator:
             {% for violation in db_coupling.get('violations', []) %}
             {% if violation.get('operation_type') == 'write' %}
             <div class="issue-item critical">
-                <strong>{{ violation.get('operation', '') }}</strong> in <code>{{ violation.get('file', '') }}:{{ violation.get('line', 0) }}</code>
+                <strong>{{ violation.get('operation', '') }}</strong> in <code>{{ violation.get('file', '') | highlight_module }}:{{ violation.get('line', 0) }}</code>
                 {% if violation.get('table') %}
                 <br>Table: <code>{{ violation.get('table') }}</code>
                 {% endif %}
@@ -642,7 +645,7 @@ class HtmlReportGenerator:
             {% for violation in db_coupling.get('violations', []) %}
             {% if violation.get('operation_type') == 'read' %}
             <div class="issue-item">
-                <strong>{{ violation.get('operation', '') }}</strong> in <code>{{ violation.get('file', '') }}:{{ violation.get('line', 0) }}</code>
+                <strong>{{ violation.get('operation', '') }}</strong> in <code>{{ violation.get('file', '') | highlight_module }}:{{ violation.get('line', 0) }}</code>
                 {% if violation.get('table') %}
                 <br>Table: <code>{{ violation.get('table') }}</code>
                 {% endif %}
@@ -655,6 +658,11 @@ class HtmlReportGenerator:
     {% if db_coupling.get('violations_by_file') %}
     <details>
         <summary>📁 Violations by File (Worst First)</summary>
+        {% if max_items > 0 and db_coupling.get('violations_by_file')|length > max_items %}
+        <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
+            📌 Showing {{ max_items }} most relevant files from {{ db_coupling.get('violations_by_file')|length }} total analyzed
+        </p>
+        {% endif %}
         <table>
             <thead>
                 <tr>
@@ -667,7 +675,7 @@ class HtmlReportGenerator:
             <tbody>
                 {% for file_violation in db_coupling.get('violations_by_file', []) %}
                 <tr>
-                    <td><code>{{ file_violation.get('file', '') }}</code></td>
+                    <td><code>{{ file_violation.get('file', '') | highlight_module }}</code></td>
                     <td>
                         {% if file_violation.get('write_count', 0) > 0 %}
                         <span class="badge badge-danger">{{ file_violation.get('write_count', 0) }}</span>
@@ -735,6 +743,11 @@ class HtmlReportGenerator:
     {% if complexity.get('high_complexity_files') %}
     <details open>
         <summary>🔴 High Complexity Files ({{ complexity.get('high_complexity_count', 0) }})</summary>
+        {% if max_items > 0 and complexity.get('high_complexity_files')|length > max_items %}
+        <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
+            📌 Showing {{ max_items }} most relevant files from {{ complexity.get('high_complexity_files')|length }} total analyzed
+        </p>
+        {% endif %}
         <table>
             <thead>
                 <tr>
@@ -745,9 +758,9 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in complexity.get('high_complexity_files', [])[:20] %}
+                {% for file in complexity.get('high_complexity_files', [])[:max_items] if max_items > 0 else complexity.get('high_complexity_files', []) %}
                 <tr>
-                    <td><code>{{ file.get('file', '') }}</code></td>
+                    <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>
                         <span class="badge {{ 'badge-success' if file.get('avg_complexity', 0) < 6 else 'badge-warning' if file.get('avg_complexity', 0) < 11 else 'badge-danger' }}">
                             {{ "%.1f"|format(file.get('avg_complexity', 0)) }}
@@ -805,6 +818,11 @@ class HtmlReportGenerator:
     {% if maintainability.get('low_maintainability_files') %}
     <details open>
         <summary>🔴 Low Maintainability Files ({{ maintainability.get('low_maintainability_files')|length }})</summary>
+        {% if max_items > 0 and maintainability.get('low_maintainability_files')|length > max_items %}
+        <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
+            📌 Showing {{ max_items }} most relevant files from {{ maintainability.get('low_maintainability_files')|length }} total analyzed
+        </p>
+        {% endif %}
         <table>
             <thead>
                 <tr>
@@ -813,9 +831,9 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in maintainability.get('low_maintainability_files', [])[:20] %}
+                {% for file in maintainability.get('low_maintainability_files', [])[:max_items] if max_items > 0 else maintainability.get('low_maintainability_files', []) %}
                 <tr>
-                    <td><code>{{ file.get('file', '') }}</code></td>
+                    <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>
                         <span class="badge {{ 'badge-danger' if file.get('maintainability_index', 0) < 50 else 'badge-warning' }}">
                             {{ "%.1f"|format(file.get('maintainability_index', 0)) }}
@@ -877,6 +895,11 @@ class HtmlReportGenerator:
     {% if code_size.get('large_files') %}
     <details open>
         <summary>📈 Largest Files ({{ code_size.get('large_files')|length }})</summary>
+        {% if max_items > 0 and code_size.get('large_files')|length > max_items %}
+        <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
+            📌 Showing {{ max_items }} largest files from {{ code_size.get('large_files')|length }} total analyzed
+        </p>
+        {% endif %}
         <table>
             <thead>
                 <tr>
@@ -947,7 +970,7 @@ class HtmlReportGenerator:
             <tbody>
                 {% for test_file in tests.test_files %}
                 <tr>
-                    <td><code>{{ test_file.file }}</code></td>
+                    <td><code>{{ test_file.file | highlight_module }}</code></td>
                     <td>{{ test_file.lines }}</td>
                 </tr>
                 {% endfor %}
@@ -995,6 +1018,11 @@ class HtmlReportGenerator:
     {% if code_smells.long_files %}
     <details open>
         <summary>📏 Long Files ({{ code_smells.long_files_count or 0 }})</summary>
+        {% if max_items > 0 and code_smells.long_files|length > max_items %}
+        <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
+            📌 Showing {{ max_items }} most relevant files from {{ code_smells.long_files|length }} total analyzed
+        </p>
+        {% endif %}
         <table>
             <thead>
                 <tr>
@@ -1004,9 +1032,9 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in code_smells.long_files[:20] %}
+                {% for file in code_smells.long_files[:max_items] if max_items > 0 else code_smells.long_files %}
                 <tr>
-                    <td><code>{{ file.file }}</code></td>
+                    <td><code>{{ file.file | highlight_module }}</code></td>
                     <td>
                         <span class="badge {{ 'badge-danger' if file.lines > 1000 else 'badge-warning' }}">
                             {{ file.lines }}
@@ -1023,6 +1051,11 @@ class HtmlReportGenerator:
     {% if code_smells.complex_classes %}
     <details>
         <summary>🏗️ Complex Classes ({{ code_smells.complex_classes_count or 0 }})</summary>
+        {% if max_items > 0 and code_smells.complex_classes|length > max_items %}
+        <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
+            📌 Showing {{ max_items }} most relevant classes from {{ code_smells.complex_classes|length }} total analyzed
+        </p>
+        {% endif %}
         <table>
             <thead>
                 <tr>
@@ -1033,10 +1066,10 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for cls in code_smells.complex_classes[:20] %}
+                {% for cls in code_smells.complex_classes[:max_items] if max_items > 0 else code_smells.complex_classes %}
                 <tr>
                     <td><code>{{ cls.class_name }}</code></td>
-                    <td><code>{{ cls.file }}</code></td>
+                    <td><code>{{ cls.file | highlight_module }}</code></td>
                     <td>{{ cls.method_count }}</td>
                     <td>
                         <span class="badge {{ 'badge-danger' if cls.avg_complexity > 10 else 'badge-warning' }}">
@@ -1120,6 +1153,11 @@ class HtmlReportGenerator:
     {% if technical_debt.top_debt_files %}
     <details open>
         <summary>📊 Top Debt Files</summary>
+        {% if max_items > 0 and technical_debt.top_debt_files|length > max_items %}
+        <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
+            📌 Showing {{ max_items }} files with highest debt from {{ technical_debt.top_debt_files|length }} total analyzed
+        </p>
+        {% endif %}
         <table>
             <thead>
                 <tr>
@@ -1129,9 +1167,9 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in technical_debt.top_debt_files[:20] %}
+                {% for file in technical_debt.top_debt_files[:max_items] if max_items > 0 else technical_debt.top_debt_files %}
                 <tr>
-                    <td><code>{{ file.file }}</code></td>
+                    <td><code>{{ file.file | highlight_module }}</code></td>
                     <td>
                         <span class="badge {{ 'badge-danger' if file.debt_hours > 5 else 'badge-warning' if file.debt_hours > 2 else 'badge-success' }}">
                             {{ "%.1f"|format(file.debt_hours) }}

@@ -33,6 +33,7 @@ Examples:
   cobana /path/to/backend --config custom.yaml --output analysis.html --json data.json
   cobana /path/to/backend --service-name claims --markdown summary.md --verbose
   cobana /path/to/backend --html report.html --json data.json --markdown summary.md
+  cobana /path/to/backend --output report.html --max-items 50
         """
     )
 
@@ -100,6 +101,14 @@ Examples:
     )
 
     parser.add_argument(
+        '--max-items',
+        type=int,
+        metavar='N',
+        default=0,
+        help='Maximum number of items to display in HTML report lists (default: 0 = unlimited)'
+    )
+
+    parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Show progress during analysis'
@@ -162,9 +171,11 @@ def main() -> int:
 
         # Generate reports
         if args.output:
-            html_generator = HtmlReportGenerator(results)
+            html_generator = HtmlReportGenerator(results, max_items=args.max_items)
             html_generator.generate(args.output)
             print(f"\n✅ HTML report saved to: {args.output}")
+            if args.max_items > 0:
+                print(f"   (Limited to {args.max_items} items per list)")
 
         if args.json:
             json_generator = JSONReportGenerator(results)
