@@ -140,7 +140,21 @@ class DatabaseCouplingAnalyzer:
         content = read_file_safely(file_path)
         if content is None:
             return {}
+        return self.analyze_file_content(content, file_path, module_name)
 
+    def analyze_file_content(
+        self, content: str, file_path: Path, module_name: str
+    ) -> dict[str, Any]:
+        """Analyze file for database coupling from file content (optimization: uses pre-read content).
+
+        Args:
+            content: File content as string
+            file_path: Path to file to analyze
+            module_name: Module the file belongs to
+
+        Returns:
+            Dictionary with file analysis results
+        """
         # Check for db import
         has_db_import = bool(self.import_pattern.search(content))
 

@@ -9,7 +9,12 @@ from collections import defaultdict
 import logging
 
 from cobana.utils.file_utils import read_file_safely
-from cobana.utils.ast_utils import ASTParser, count_lines, get_function_params, get_nesting_depth
+from cobana.utils.ast_utils import (
+    ASTParser,
+    count_lines,
+    get_function_params,
+    get_nesting_depth,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,23 +29,29 @@ class CodeSmellsAnalyzer:
             config: Configuration dictionary
         """
         self.config = config
-        self.function_size_threshold = config.get('thresholds', {}).get('function_size', 50)
-        self.parameters_threshold = config.get('thresholds', {}).get('parameters', 5)
-        self.nesting_threshold = config.get('thresholds', {}).get('nesting', 4)
+        self.function_size_threshold = config.get("thresholds", {}).get(
+            "function_size", 50
+        )
+        self.parameters_threshold = config.get("thresholds", {}).get(
+            "parameters", 5
+        )
+        self.nesting_threshold = config.get("thresholds", {}).get("nesting", 4)
 
         # Results storage
         self.results: dict[str, Any] = {
-            'total_smells': 0,
-            'by_module': defaultdict(lambda: {
-                'long_methods': 0,
-                'long_parameter_lists': 0,
-                'deep_nesting': 0,
-                'total_smells': 0,
-            }),
-            'long_methods': [],
-            'long_parameter_lists': [],
-            'deep_nesting': [],
-            'duplicate_code': [],  # Placeholder for future implementation
+            "total_smells": 0,
+            "by_module": defaultdict(
+                lambda: {
+                    "long_methods": 0,
+                    "long_parameter_lists": 0,
+                    "deep_nesting": 0,
+                    "total_smells": 0,
+                }
+            ),
+            "long_methods": [],
+            "long_parameter_lists": [],
+            "deep_nesting": [],
+            "duplicate_code": [],  # Placeholder for future implementation
         }
 
     def analyze_file(self, file_path: Path, module_name: str) -> dict[str, Any]:
@@ -56,7 +67,21 @@ class CodeSmellsAnalyzer:
         content = read_file_safely(file_path)
         if content is None:
             return {}
+        return self.analyze_file_content(content, file_path, module_name)
 
+    def analyze_file_content(
+        self, content: str, file_path: Path, module_name: str
+    ) -> dict[str, Any]:
+        """Analyze code smells from file content (optimization: uses pre-read content).
+
+        Args:
+            content: File content as string
+            file_path: Path to file to analyze
+            module_name: Module the file belongs to
+
+        Returns:
+            Dictionary with file analysis results
+        """
         parser = ASTParser(file_path, content)
         if not parser.parse():
             return {}
@@ -67,9 +92,9 @@ class CodeSmellsAnalyzer:
             return {}
 
         file_smells = {
-            'file': str(file_path),
-            'module': module_name,
-            'smells': [],
+            "file": str(file_path),
+            "module": module_name,
+            "smells": [],
         }
 
         # Analyze each function
@@ -78,47 +103,44 @@ class CodeSmellsAnalyzer:
             func_lines = count_lines(func_node)
             if func_lines > self.function_size_threshold:
                 smell = {
-                    'type': 'long_method',
-                    'function': func_name,
-                    'sloc': func_lines,
-                    'line': func_node.lineno,
+                    "type": "long_method",
+                    "function": func_name,
+                    "sloc": func_lines,
+                    "line": func_node.lineno,
                 }
-                file_smells['smells'].append(smell)
-                self._track_smell('long_methods', smell, module_name)
+                file_smells["smells"].append(smell)
+                self._track_smell("long_methods", smell, module_name)
 
             # Check for long parameter lists
             params = get_function_params(func_node)
             param_count = len(params)
             if param_count > self.parameters_threshold:
                 smell = {
-                    'type': 'long_parameter_list',
-                    'function': func_name,
-                    'parameters': param_count,
-                    'param_names': params,
-                    'line': func_node.lineno,
+                    "type": "long_parameter_list",
+                    "function": func_name,
+                    "parameters": param_count,
+                    "param_names": params,
+                    "line": func_node.lineno,
                 }
-                file_smells['smells'].append(smell)
-                self._track_smell('long_parameter_lists', smell, module_name)
+                file_smells["smells"].append(smell)
+                self._track_smell("long_parameter_lists", smell, module_name)
 
             # Check for deep nesting
             max_depth = get_nesting_depth(func_node)
             if max_depth > self.nesting_threshold:
                 smell = {
-                    'type': 'deep_nesting',
-                    'function': func_name,
-                    'max_depth': max_depth,
-                    'line': func_node.lineno,
+                    "type": "deep_nesting",
+                    "function": func_name,
+                    "max_depth": max_depth,
+                    "line": func_node.lineno,
                 }
-                file_smells['smells'].append(smell)
-                self._track_smell('deep_nesting', smell, module_name)
+                file_smells["smells"].append(smell)
+                self._track_smell("deep_nesting", smell, module_name)
 
         return file_smells
 
     def _track_smell(
-        self,
-        smell_type: str,
-        smell: dict[str, Any],
-        module_name: str
+        self, smell_type: str, smell: dict[str, Any], module_name: str
     ) -> None:
         """Track a detected code smell.
 
@@ -128,15 +150,17 @@ class CodeSmellsAnalyzer:
             module_name: Module name
         """
         # Add to overall results
-        self.results[smell_type].append({
-            **smell,
-            'module': module_name,
-        })
+        self.results[smell_type].append(
+            {
+                **smell,
+                "module": module_name,
+            }
+        )
 
         # Update counts
-        self.results['total_smells'] += 1
-        self.results['by_module'][module_name][smell_type] += 1
-        self.results['by_module'][module_name]['total_smells'] += 1
+        self.results["total_smells"] += 1
+        self.results["by_module"][module_name][smell_type] += 1
+        self.results["by_module"][module_name]["total_smells"] += 1
 
     def finalize_results(self) -> dict[str, Any]:
         """Finalize and return analysis results.
@@ -145,23 +169,20 @@ class CodeSmellsAnalyzer:
             Complete analysis results
         """
         # Sort smells by severity (largest/deepest first)
-        self.results['long_methods'].sort(
-            key=lambda x: x.get('sloc', 0),
-            reverse=True
+        self.results["long_methods"].sort(
+            key=lambda x: x.get("sloc", 0), reverse=True
         )
 
-        self.results['long_parameter_lists'].sort(
-            key=lambda x: x.get('parameters', 0),
-            reverse=True
+        self.results["long_parameter_lists"].sort(
+            key=lambda x: x.get("parameters", 0), reverse=True
         )
 
-        self.results['deep_nesting'].sort(
-            key=lambda x: x.get('max_depth', 0),
-            reverse=True
+        self.results["deep_nesting"].sort(
+            key=lambda x: x.get("max_depth", 0), reverse=True
         )
 
         # Convert by_module from defaultdict to regular dict
-        self.results['by_module'] = dict(self.results['by_module'])
+        self.results["by_module"] = dict(self.results["by_module"])
 
         return self.results
 
@@ -172,9 +193,9 @@ class CodeSmellsAnalyzer:
             Summary dictionary
         """
         return {
-            'total_smells': self.results['total_smells'],
-            'long_methods': len(self.results['long_methods']),
-            'long_parameter_lists': len(self.results['long_parameter_lists']),
-            'deep_nesting': len(self.results['deep_nesting']),
-            'duplicate_code': len(self.results['duplicate_code']),
+            "total_smells": self.results["total_smells"],
+            "long_methods": len(self.results["long_methods"]),
+            "long_parameter_lists": len(self.results["long_parameter_lists"]),
+            "deep_nesting": len(self.results["deep_nesting"]),
+            "duplicate_code": len(self.results["duplicate_code"]),
         }

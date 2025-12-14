@@ -116,6 +116,7 @@ class HtmlReportGenerator:
             "technical_debt": self._prepare_technical_debt_data(),
             "module_health": module_health_dict,
             "module_rankings": self._prepare_module_rankings(),
+            "available_modules": self._get_available_modules(),
             "max_items": self.max_items,
         }
 
@@ -154,6 +155,15 @@ class HtmlReportGenerator:
 
         return rankings
 
+    def _get_available_modules(self) -> list[str]:
+        """Get list of all available modules from module rankings.
+
+        Returns:
+            List of module names
+        """
+        rankings = self._prepare_module_rankings()
+        return [module["module"] for module in rankings]
+
     def _get_root_path(self) -> Path:
         """Get the codebase root path from metadata.
 
@@ -186,6 +196,21 @@ class HtmlReportGenerator:
                 .replace(str(self._get_root_path()), "")
                 .lstrip("/")
             )
+
+    def _extract_module_from_path(self, file_path: str) -> str:
+        """Extract module name from file path.
+
+        The module is the first directory component in the relative path.
+
+        Args:
+            file_path: Absolute or relative file path
+
+        Returns:
+            Module name (first directory component) or empty string
+        """
+        rel_path = self._format_file_path(file_path)
+        parts = rel_path.split("/")
+        return parts[0] if parts else ""
 
     def _format_file_path_html(self, file_path: str) -> str:
         """Format file path with module name highlighted for HTML display.
@@ -319,8 +344,14 @@ class HtmlReportGenerator:
                     if file_path != "unknown"
                     else "unknown"
                 )
+                module_name = (
+                    self._extract_module_from_path(file_path)
+                    if file_path != "unknown"
+                    else ""
+                )
                 long_files_dict[file_path] = {
                     "file": rel_path,
+                    "module": module_name,
                     "lines": method.get("sloc", 0),
                     "functions": 0,
                 }
@@ -328,12 +359,16 @@ class HtmlReportGenerator:
 
         long_files = list(long_files_dict.values())
 
+        # Count complex classes as distinct long methods (functions with high complexity)
+        # Since the analyzer tracks long_methods, we use that as a proxy for complexity
+        complex_classes_count = len(
+            set(m.get("function", "") for m in long_methods)
+        )
+
         # Map analyzer fields to template expectations
-        # long_methods -> long_files (closest equivalent)
-        # We don't have direct complex_classes data, so use empty list
         return {
             "long_files_count": len(long_files),
-            "complex_classes_count": 0,  # Not tracked by current analyzer
+            "complex_classes_count": complex_classes_count,
             "long_files": long_files,
             "complex_classes": [],  # Not tracked by current analyzer
             # Include all other fields from results
@@ -363,18 +398,43 @@ class HtmlReportGenerator:
                 )
                 formatted_violation = violation.copy()
                 formatted_violation["file"] = rel_path
+
+                # Normalize field names for template compatibility
+                # Analyzer uses "type", template expects "operation_type"
+                if (
+                    "type" in formatted_violation
+                    and "operation_type" not in formatted_violation
+                ):
+                    formatted_violation["operation_type"] = formatted_violation[
+                        "type"
+                    ]
+
+                # Analyzer uses "collection", template expects "table"
+                if (
+                    "collection" in formatted_violation
+                    and "table" not in formatted_violation
+                ):
+                    formatted_violation["table"] = formatted_violation[
+                        "collection"
+                    ]
+
                 formatted_violations.append(formatted_violation)
 
                 # Aggregate by file
                 if rel_path not in violations_by_file:
+                    module_name = self._extract_module_from_path(file_path)
                     violations_by_file[rel_path] = {
                         "file": rel_path,
+                        "module": module_name,
                         "write_count": 0,
                         "read_count": 0,
                         "total_count": 0,
                     }
 
-                op_type = violation.get("operation_type", "").lower()
+                # Check both "operation_type" and "type" fields for compatibility
+                op_type = (
+                    violation.get("operation_type") or violation.get("type", "")
+                ).lower()
                 if op_type == "write":
                     violations_by_file[rel_path]["write_count"] += 1
                 elif op_type == "read":
@@ -410,9 +470,11 @@ class HtmlReportGenerator:
             if isinstance(file_data, dict):
                 file_path = file_data.get("file", "")
                 rel_path = self._format_file_path(file_path)
+                module_name = self._extract_module_from_path(file_path)
                 low_maintainability_files.append(
                     {
                         "file": rel_path,
+                        "module": module_name,
                         "maintainability_index": file_data.get("mi_score", 0),
                     }
                 )
@@ -440,19 +502,23 @@ class HtmlReportGenerator:
             Dictionary with template-friendly code size data
         """
         code_size_results = self.results.get("code_size", {})
+        complexity_results = self.results.get("complexity", {})
+        class_metrics_results = self.results.get("class_metrics", {})
 
-        # Get per_file data if available (it's a list)
-        per_file = code_size_results.get("per_file", [])
+        # Get large_files from code_size analyzer (it's already a list)
+        large_files_raw = code_size_results.get("large_files", [])
 
-        # Transform per_file data to list format with relative paths
+        # Transform large_files data to template format with relative paths
         large_files = []
-        for file_data in per_file:
+        for file_data in large_files_raw:
             if isinstance(file_data, dict):
                 file_path = file_data.get("file", "")
                 rel_path = self._format_file_path(file_path)
+                module_name = self._extract_module_from_path(file_path)
                 large_files.append(
                     {
                         "file": rel_path,
+                        "module": module_name,
                         "lines": file_data.get("sloc", 0),
                         "comment_ratio": file_data.get("comment_ratio", 0),
                     }
@@ -462,15 +528,20 @@ class HtmlReportGenerator:
         large_files.sort(key=lambda x: x["lines"], reverse=True)
 
         # Calculate average file size
-        avg_file_size = 0
-        if large_files:
-            total_lines = sum(f["lines"] for f in large_files)
-            avg_file_size = total_lines / len(large_files)
+        file_count = code_size_results.get("file_count", 0)
+        total_sloc = code_size_results.get("total_sloc", 0)
+        avg_file_size = total_sloc / file_count if file_count > 0 else 0
 
         return {
-            "total_lines": code_size_results.get("total_lines", 0),
-            "total_functions": code_size_results.get("total_functions", 0),
-            "total_classes": code_size_results.get("total_classes", 0),
+            "total_lines": code_size_results.get(
+                "total_sloc", 0
+            ),  # Analyzer uses total_sloc
+            "total_functions": complexity_results.get(
+                "total_functions", 0
+            ),  # From complexity analyzer
+            "total_classes": class_metrics_results.get(
+                "total_classes", 0
+            ),  # From class_metrics analyzer
             "avg_file_size": avg_file_size,
             "large_files": large_files,
             **code_size_results,
@@ -479,13 +550,63 @@ class HtmlReportGenerator:
     def _prepare_technical_debt_data(self) -> dict[str, Any]:
         """Prepare technical debt data for template rendering.
 
+        Formats debt data with relative file paths and module organization.
+
         Returns:
             Dictionary with template-friendly technical debt data
         """
         technical_debt_results = self.results.get("technical_debt", {})
 
-        # Return the data as-is since it's already in the correct format
-        return technical_debt_results
+        # Format top debt files with relative paths
+        top_debt_files = technical_debt_results.get("top_debt_files", [])
+        formatted_debt_files = []
+
+        for file_data in top_debt_files:
+            if isinstance(file_data, dict):
+                file_path = file_data.get("file", "")
+                rel_path = (
+                    self._format_file_path(file_path)
+                    if file_path
+                    else "unknown"
+                )
+                module_name = (
+                    self._extract_module_from_path(file_path)
+                    if file_path
+                    else ""
+                )
+                formatted_file = file_data.copy()
+                formatted_file["file"] = rel_path
+                formatted_file["module"] = module_name
+                formatted_debt_files.append(formatted_file)
+
+        # Sort by debt hours (highest first - worst files first)
+        formatted_debt_files.sort(
+            key=lambda x: x.get("debt_hours", 0), reverse=True
+        )
+
+        # Prepare by-module data
+        by_module = technical_debt_results.get("by_module", {})
+        by_module_list = []
+        for module_name, module_data in by_module.items():
+            if isinstance(module_data, dict):
+                by_module_list.append(
+                    {
+                        "module": module_name,
+                        "debt_hours": module_data.get("debt_hours", 0),
+                        "debt_ratio": module_data.get("debt_ratio", 0),
+                        "sqale_rating": module_data.get("sqale_rating", "N/A"),
+                        "sloc": module_data.get("sloc", 0),
+                    }
+                )
+
+        # Sort modules by debt hours (worst first)
+        by_module_list.sort(key=lambda x: x.get("debt_hours", 0), reverse=True)
+
+        return {
+            **technical_debt_results,
+            "top_debt_files": formatted_debt_files,
+            "by_module_list": by_module_list,
+        }
 
     def _prepare_complexity_data(self) -> dict[str, Any]:
         """Prepare complexity data for template rendering, aggregated by file.
@@ -517,8 +638,10 @@ class HtmlReportGenerator:
 
             if high_complexity_funcs:
                 rel_path = self._format_file_path(file_path)
+                module_name = self._extract_module_from_path(file_path)
                 high_complexity_files[file_path] = {
                     "file": rel_path,
+                    "module": module_name,
                     "function_count": len(functions),
                     "avg_complexity": file_data.get("avg_complexity", 0),
                     "max_complexity": file_data.get("max_complexity", 0),
@@ -688,7 +811,7 @@ class HtmlReportGenerator:
             </thead>
             <tbody>
                 {% for file_violation in db_coupling.get('violations_by_file', []) %}
-                <tr>
+                <tr data-module="{{ file_violation.get('module', '') }}">
                     <td><code>{{ file_violation.get('file', '') | highlight_module }}</code></td>
                     <td>
                         {% if file_violation.get('write_count', 0) > 0 %}
@@ -755,7 +878,7 @@ class HtmlReportGenerator:
     </div>
 
     {% if complexity.get('high_complexity_files') %}
-    <details open>
+    <details open data-section="complexity">
         <summary>🔴 High Complexity Files ({{ complexity.get('high_complexity_count', 0) }})</summary>
         {% if max_items > 0 and complexity.get('high_complexity_files')|length > max_items %}
         <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
@@ -774,7 +897,7 @@ class HtmlReportGenerator:
             <tbody>
                 {% set files = complexity.get('high_complexity_files', [])[:max_items] if max_items > 0 else complexity.get('high_complexity_files', []) %}
                 {% for file in files %}
-                <tr>
+                <tr data-module="{{ file.get('module', '') }}">
                     <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>
                         <span class="badge {{ 'badge-success' if file.get('avg_complexity', 0) < 6 else 'badge-warning' if file.get('avg_complexity', 0) < 11 else 'badge-danger' }}">
@@ -831,7 +954,7 @@ class HtmlReportGenerator:
     </div>
 
     {% if maintainability.get('low_maintainability_files') %}
-    <details open>
+    <details open data-section="maintainability">
         <summary>🔴 Low Maintainability Files ({{ maintainability.get('low_maintainability_files')|length }})</summary>
         {% if max_items > 0 and maintainability.get('low_maintainability_files')|length > max_items %}
         <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
@@ -848,7 +971,7 @@ class HtmlReportGenerator:
             <tbody>
                 {% set files = maintainability.get('low_maintainability_files', [])[:max_items] if max_items > 0 else maintainability.get('low_maintainability_files', []) %}
                 {% for file in files %}
-                <tr>
+                <tr data-module="{{ file.get('module', '') }}">
                     <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>
                         <span class="badge {{ 'badge-danger' if file.get('maintainability_index', 0) < 50 else 'badge-warning' }}">
@@ -909,7 +1032,7 @@ class HtmlReportGenerator:
     </div>
 
     {% if code_size.get('large_files') %}
-    <details open>
+    <details open data-section="code-size">
         <summary>📈 Largest Files ({{ code_size.get('large_files')|length }})</summary>
         {% if max_items > 0 and code_size.get('large_files')|length > max_items %}
         <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
@@ -926,7 +1049,7 @@ class HtmlReportGenerator:
             </thead>
             <tbody>
                 {% for file in code_size.get('large_files', []) %}
-                <tr>
+                <tr data-module="{{ file.get('module', '') }}">
                     <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>{{ file.get('lines', 0) }}</td>
                     <td>{{ "%.1f"|format(file.get('comment_ratio', 0) * 100) }}%</td>
@@ -1032,7 +1155,7 @@ class HtmlReportGenerator:
     </div>
 
     {% if code_smells.long_files %}
-    <details open>
+    <details open data-section="code-smells">
         <summary>📏 Long Files ({{ code_smells.long_files_count or 0 }})</summary>
         {% if max_items > 0 and code_smells.long_files|length > max_items %}
         <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
@@ -1050,7 +1173,7 @@ class HtmlReportGenerator:
             <tbody>
                 {% set files = code_smells.long_files[:max_items] if max_items > 0 else code_smells.long_files %}
                 {% for file in files %}
-                <tr>
+                <tr data-module="{{ file.get('module', '') }}">
                     <td><code>{{ file.file | highlight_module }}</code></td>
                     <td>
                         <span class="badge {{ 'badge-danger' if file.lines > 1000 else 'badge-warning' }}">
@@ -1168,8 +1291,38 @@ class HtmlReportGenerator:
     </table>
     {% endif %}
 
+    {% if technical_debt.by_module_list %}
+    <h3>Debt by Module</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Module</th>
+                <th>SQALE Rating</th>
+                <th>Debt Hours</th>
+                <th>Debt Ratio</th>
+                <th>Lines of Code</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for module in technical_debt.by_module_list %}
+            <tr>
+                <td><code>{{ module.module }}</code></td>
+                <td>
+                    <span class="badge {{ 'badge-success' if module.sqale_rating in ['A', 'B'] else 'badge-warning' if module.sqale_rating == 'C' else 'badge-danger' }}">
+                        {{ module.sqale_rating }}
+                    </span>
+                </td>
+                <td>{{ "%.1f"|format(module.debt_hours) }}</td>
+                <td>{{ "%.1f"|format(module.debt_ratio) }}%</td>
+                <td>{{ module.sloc }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
     {% if technical_debt.top_debt_files %}
-    <details open>
+    <details open data-section="technical-debt">
         <summary>📊 Top Debt Files</summary>
         {% if max_items > 0 and technical_debt.top_debt_files|length > max_items %}
         <p style="margin: 10px 0; color: #666; font-size: 0.9em;">
@@ -1187,7 +1340,7 @@ class HtmlReportGenerator:
             <tbody>
                 {% set files = technical_debt.top_debt_files[:max_items] if max_items > 0 else technical_debt.top_debt_files %}
                 {% for file in files %}
-                <tr>
+                <tr data-module="{{ file.get('module', '') }}">
                     <td><code>{{ file.file | highlight_module }}</code></td>
                     <td>
                         <span class="badge {{ 'badge-danger' if file.debt_hours > 5 else 'badge-warning' if file.debt_hours > 2 else 'badge-success' }}">

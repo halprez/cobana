@@ -161,6 +161,12 @@ class ModuleHealthCalculator:
         # Categorize health
         category = self._categorize_health(health_score)
 
+        # Get actual metrics for display
+        complexity_data = complexity_results.get("by_module", {}).get(module_name, {})
+        maintainability_data = maintainability_results.get("by_module", {}).get(module_name, {})
+        test_data = test_results.get("by_module", {}).get(module_name, {})
+        code_size_data = code_size_results.get("by_module", {}).get(module_name, {})
+
         return {
             "module": module_name,
             "score": health_score,
@@ -173,6 +179,11 @@ class ModuleHealthCalculator:
                 "smells": smells_score,
                 "debt": debt_score,
             },
+            # Add actual metrics for display in module overview
+            "file_count": code_size_data.get("file_count", 0),
+            "avg_complexity": complexity_data.get("avg_complexity", 0),
+            "avg_maintainability": maintainability_data.get("avg_mi", 0),
+            "test_coverage": test_data.get("testability_score", 0),
         }
 
     def _normalize_coupling(self, module_stats: dict[str, Any]) -> float:

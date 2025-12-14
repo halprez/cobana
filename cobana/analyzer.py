@@ -8,7 +8,7 @@ from typing import Any
 import logging
 
 from cobana.utils.config_utils import load_config
-from cobana.utils.file_utils import FileScanner
+from cobana.utils.file_utils import FileScanner, read_file_safely
 from cobana.utils.module_detector import ModuleDetector
 
 # Import all analyzers
@@ -42,7 +42,7 @@ class CodebaseAnalyzer:
         self,
         root_path: Path | str,
         config_path: Path | str | None = None,
-        verbose: bool = False
+        verbose: bool = False,
     ):
         """Initialize codebase analyzer.
 
@@ -68,9 +68,9 @@ class CodebaseAnalyzer:
         # File scanner
         self.scanner = FileScanner(
             self.root_path,
-            self.config.get('exclude_patterns', []),
+            self.config.get("exclude_patterns", []),
             verbose,
-            self.config.get('max_depth')
+            self.config.get("max_depth"),
         )
 
         # Initialize all analyzers
@@ -107,9 +107,9 @@ class CodebaseAnalyzer:
         # Refresh scanner with current config (in case config was modified after init)
         self.scanner = FileScanner(
             self.root_path,
-            self.config.get('exclude_patterns', []),
+            self.config.get("exclude_patterns", []),
             self.verbose,
-            self.config.get('max_depth')
+            self.config.get("max_depth"),
         )
 
         # Step 1: Detect modules
@@ -145,27 +145,46 @@ class CodebaseAnalyzer:
     def _analyze_file(self, file_path: Path, module_name: str) -> None:
         """Analyze a single file with all applicable analyzers.
 
+        Reads file once and passes content to all analyzers to avoid
+        redundant disk I/O (optimization: 87.5% reduction in file reads).
+
         Args:
             file_path: Path to file
             module_name: Module the file belongs to
         """
+        # Read file ONCE instead of 8 times
+        content = read_file_safely(file_path)
+        if content is None:
+            return
+
         is_test = self.test_analyzer.is_test_file(file_path)
 
         if is_test:
             # Analyze as test file
-            self.test_analyzer.analyze_test_file(file_path, module_name)
+            self.test_analyzer.analyze_test_file_content(
+                content, file_path, module_name
+            )
         else:
             # Analyze as regular code
-            self.db_coupling.analyze_file(file_path, module_name)
-            self.test_analyzer.analyze_testability(file_path, module_name)
+            self.db_coupling.analyze_file_content(
+                content, file_path, module_name
+            )
+            self.test_analyzer.analyze_testability_content(
+                content, file_path, module_name
+            )
 
         # Run on all files (test and non-test)
-        self.complexity.analyze_file(file_path, module_name)
-        self.maintainability.analyze_file(file_path, module_name)
-        self.code_size.analyze_file(file_path, module_name)
-        self.class_metrics.analyze_file(file_path, module_name)
-        self.code_smells.analyze_file(file_path, module_name)
-        self.module_coupling.analyze_file(file_path, module_name)
+        # All analyzers now use pre-read content instead of reading again
+        self.complexity.analyze_file_content(content, file_path, module_name)
+        self.maintainability.analyze_file_content(
+            content, file_path, module_name
+        )
+        self.code_size.analyze_file_content(content, file_path, module_name)
+        self.class_metrics.analyze_file_content(content, file_path, module_name)
+        self.code_smells.analyze_file_content(content, file_path, module_name)
+        self.module_coupling.analyze_file_content(
+            content, file_path, module_name
+        )
 
     def _finalize_analyzers(self) -> None:
         """Finalize all analyzers."""
@@ -210,15 +229,15 @@ class CodebaseAnalyzer:
     def _build_results(self) -> None:
         """Build final results structure."""
         self.results = {
-            'metadata': {
-                'codebase_path': str(self.root_path),
-                'service_name': self.config.get('service_name', 'unknown'),
-                'total_files_analyzed': self.scanner.files_scanned,
-                'total_files_skipped': self.scanner.files_skipped,
-                'module_count': len(self.modules),
-                'modules': [m.to_dict() for m in self.modules],
+            "metadata": {
+                "codebase_path": str(self.root_path),
+                "service_name": self.config.get("service_name", "unknown"),
+                "total_files_analyzed": self.scanner.files_scanned,
+                "total_files_skipped": self.scanner.files_skipped,
+                "module_count": len(self.modules),
+                "modules": [m.to_dict() for m in self.modules],
             },
-            'summary': {
+            "summary": {
                 **self.db_coupling.get_summary(),
                 **self.complexity.get_summary(),
                 **self.maintainability.get_summary(),
@@ -230,16 +249,16 @@ class CodebaseAnalyzer:
                 **self.tech_debt.get_summary(),
                 **self.module_health.get_summary(),
             },
-            'db_coupling': self.db_coupling_results,
-            'complexity': self.complexity_results,
-            'maintainability': self.maintainability_results,
-            'code_size': self.code_size_results,
-            'tests': self.test_results,
-            'module_coupling': self.module_coupling_results,
-            'class_metrics': self.class_metrics_results,
-            'code_smells': self.code_smells_results,
-            'technical_debt': self.tech_debt_results,
-            'module_health': self.module_health_results,
+            "db_coupling": self.db_coupling_results,
+            "complexity": self.complexity_results,
+            "maintainability": self.maintainability_results,
+            "code_size": self.code_size_results,
+            "tests": self.test_results,
+            "module_coupling": self.module_coupling_results,
+            "class_metrics": self.class_metrics_results,
+            "code_smells": self.code_smells_results,
+            "technical_debt": self.tech_debt_results,
+            "module_health": self.module_health_results,
         }
 
     def get_results(self) -> dict[str, Any]:

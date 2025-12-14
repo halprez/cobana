@@ -9,6 +9,7 @@ from collections import defaultdict
 import logging
 
 from cobana.utils.ast_utils import ASTParser
+from cobana.utils.file_utils import read_file_safely
 from cobana.utils.module_detector import Module
 
 logger = logging.getLogger(__name__)
@@ -30,23 +31,27 @@ class ModuleCouplingAnalyzer:
 
         # Results storage
         self.results: dict[str, Any] = {
-            'total_modules': len(modules),
-            'avg_afferent_coupling': 0.0,
-            'avg_efferent_coupling': 0.0,
-            'avg_instability': 0.0,
-            'per_module': {},
-            'stable_modules': [],
-            'unstable_modules': [],
-            'high_fanout_modules': [],
-            'dependency_graph': {
-                'nodes': [m.name for m in modules],
-                'edges': [],
+            "total_modules": len(modules),
+            "avg_afferent_coupling": 0.0,
+            "avg_efferent_coupling": 0.0,
+            "avg_instability": 0.0,
+            "per_module": {},
+            "stable_modules": [],
+            "unstable_modules": [],
+            "high_fanout_modules": [],
+            "dependency_graph": {
+                "nodes": [m.name for m in modules],
+                "edges": [],
             },
         }
 
         # Track imports
-        self._imports: dict[str, set[str]] = defaultdict(set)  # module -> modules it imports
-        self._imported_by: dict[str, set[str]] = defaultdict(set)  # module -> modules that import it
+        self._imports: dict[str, set[str]] = defaultdict(
+            set
+        )  # module -> modules it imports
+        self._imported_by: dict[str, set[str]] = defaultdict(
+            set
+        )  # module -> modules that import it
 
     def analyze_file(self, file_path: Path, module_name: str) -> None:
         """Analyze imports in a file to track module coupling.
@@ -55,7 +60,23 @@ class ModuleCouplingAnalyzer:
             file_path: Path to file
             module_name: Module the file belongs to
         """
-        parser = ASTParser(file_path)
+        # For backward compatibility, read and delegate
+        content = read_file_safely(file_path)
+        if content is None:
+            return
+        self.analyze_file_content(content, file_path, module_name)
+
+    def analyze_file_content(
+        self, content: str, file_path: Path, module_name: str
+    ) -> None:
+        """Analyze imports from file content (optimization: uses pre-read content).
+
+        Args:
+            content: File content as string
+            file_path: Path to file
+            module_name: Module the file belongs to
+        """
+        parser = ASTParser(file_path, content)
         imports = parser.get_imports()
 
         if not imports:
@@ -80,17 +101,17 @@ class ModuleCouplingAnalyzer:
             Module name or None
         """
         # Get the module path from the import
-        if import_info['type'] == 'from_import':
-            module_path = import_info['module']
+        if import_info["type"] == "from_import":
+            module_path = import_info["module"]
         else:
-            module_path = import_info['module']
+            module_path = import_info["module"]
 
         if not module_path:
             return None
 
         # Check if this import is from one of our tracked modules
         for mod_path, mod_name in self.module_paths.items():
-            if module_path.startswith(mod_path.replace('/', '.')):
+            if module_path.startswith(mod_path.replace("/", ".")):
                 return mod_name
 
         return None
@@ -101,7 +122,9 @@ class ModuleCouplingAnalyzer:
         Returns:
             Complete analysis results
         """
-        fan_out_threshold = self.config.get('thresholds', {}).get('module_fan_out', 10)
+        fan_out_threshold = self.config.get("thresholds", {}).get(
+            "module_fan_out", 10
+        )
 
         total_ca = 0
         total_ce = 0
@@ -110,7 +133,9 @@ class ModuleCouplingAnalyzer:
 
         # Calculate metrics for each module
         for module_name in self.modules.keys():
-            ca = len(self._imported_by.get(module_name, set()))  # Afferent coupling
+            ca = len(
+                self._imported_by.get(module_name, set())
+            )  # Afferent coupling
             ce = len(self._imports.get(module_name, set()))  # Efferent coupling
 
             # Calculate instability: I = Ce / (Ca + Ce)
@@ -121,43 +146,51 @@ class ModuleCouplingAnalyzer:
 
             # Categorize stability
             if instability < 0.3:
-                stability_category = 'stable'
+                stability_category = "stable"
             elif instability > 0.7:
-                stability_category = 'unstable'
+                stability_category = "unstable"
             else:
-                stability_category = 'moderate'
+                stability_category = "moderate"
 
             module_info = {
-                'module': module_name,
-                'afferent_coupling': ca,
-                'efferent_coupling': ce,
-                'instability': instability,
-                'stability_category': stability_category,
-                'imported_by': list(self._imported_by.get(module_name, set())),
-                'imports': list(self._imports.get(module_name, set())),
+                "module": module_name,
+                "afferent_coupling": ca,
+                "efferent_coupling": ce,
+                "instability": instability,
+                "stability_category": stability_category,
+                "imported_by": list(self._imported_by.get(module_name, set())),
+                "imports": list(self._imports.get(module_name, set())),
             }
 
-            self.results['per_module'][module_name] = module_info
+            self.results["per_module"][module_name] = module_info
 
             # Track stable and unstable modules
             if instability <= 0.3:
-                self.results['stable_modules'].append({
-                    'module': module_name,
-                    'instability': instability,
-                })
+                self.results["stable_modules"].append(
+                    {
+                        "module": module_name,
+                        "instability": instability,
+                    }
+                )
             elif instability >= 0.7:
-                self.results['unstable_modules'].append({
-                    'module': module_name,
-                    'instability': instability,
-                })
+                self.results["unstable_modules"].append(
+                    {
+                        "module": module_name,
+                        "instability": instability,
+                    }
+                )
 
             # Track high fan-out modules
             if ce > fan_out_threshold:
-                self.results['high_fanout_modules'].append({
-                    'module': module_name,
-                    'efferent_coupling': ce,
-                    'dependencies': list(self._imports.get(module_name, set())),
-                })
+                self.results["high_fanout_modules"].append(
+                    {
+                        "module": module_name,
+                        "efferent_coupling": ce,
+                        "dependencies": list(
+                            self._imports.get(module_name, set())
+                        ),
+                    }
+                )
 
             # Update averages
             total_ca += ca
@@ -167,22 +200,28 @@ class ModuleCouplingAnalyzer:
 
         # Calculate overall averages
         if module_count > 0:
-            self.results['avg_afferent_coupling'] = total_ca / module_count
-            self.results['avg_efferent_coupling'] = total_ce / module_count
-            self.results['avg_instability'] = total_instability / module_count
+            self.results["avg_afferent_coupling"] = total_ca / module_count
+            self.results["avg_efferent_coupling"] = total_ce / module_count
+            self.results["avg_instability"] = total_instability / module_count
 
         # Build dependency graph edges
         for from_module, to_modules in self._imports.items():
             for to_module in to_modules:
-                self.results['dependency_graph']['edges'].append({
-                    'from': from_module,
-                    'to': to_module,
-                })
+                self.results["dependency_graph"]["edges"].append(
+                    {
+                        "from": from_module,
+                        "to": to_module,
+                    }
+                )
 
         # Sort lists
-        self.results['stable_modules'].sort(key=lambda x: x['instability'])
-        self.results['unstable_modules'].sort(key=lambda x: x['instability'], reverse=True)
-        self.results['high_fanout_modules'].sort(key=lambda x: x['efferent_coupling'], reverse=True)
+        self.results["stable_modules"].sort(key=lambda x: x["instability"])
+        self.results["unstable_modules"].sort(
+            key=lambda x: x["instability"], reverse=True
+        )
+        self.results["high_fanout_modules"].sort(
+            key=lambda x: x["efferent_coupling"], reverse=True
+        )
 
         return self.results
 
@@ -193,9 +232,9 @@ class ModuleCouplingAnalyzer:
             Summary dictionary
         """
         return {
-            'total_modules': self.results['total_modules'],
-            'avg_instability': round(self.results['avg_instability'], 2),
-            'stable_modules_count': len(self.results['stable_modules']),
-            'unstable_modules_count': len(self.results['unstable_modules']),
-            'high_fanout_count': len(self.results['high_fanout_modules']),
+            "total_modules": self.results["total_modules"],
+            "avg_instability": round(self.results["avg_instability"], 2),
+            "stable_modules_count": len(self.results["stable_modules"]),
+            "unstable_modules_count": len(self.results["unstable_modules"]),
+            "high_fanout_count": len(self.results["high_fanout_modules"]),
         }

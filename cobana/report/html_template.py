@@ -308,6 +308,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
         </header>
 
+        <div id="module-filter-container" style="margin: 20px 0; padding: 15px; background-color: #f5f5f5; border-radius: 5px; display: none;">
+            <label for="module-selector" style="font-weight: bold; margin-right: 10px;">Filter by Module:</label>
+            <select id="module-selector" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; cursor: pointer;">
+                <option value="">-- Show All Modules --</option>
+                {% for module in available_modules %}
+                <option value="{{ module }}">{{ module }}</option>
+                {% endfor %}
+            </select>
+            <button id="reset-filter-btn" style="margin-left: 10px; padding: 8px 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset</button>
+        </div>
+
         <nav>
             <a href="#executive-summary">📊 Summary</a>
             <a href="#module-overview">📦 Modules</a>
@@ -440,6 +451,62 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 });
             }
         }
+    </script>
+
+    <script>
+        // Module filter functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const moduleSelector = document.getElementById('module-selector');
+            const resetBtn = document.getElementById('reset-filter-btn');
+            const filterContainer = document.getElementById('module-filter-container');
+            
+            // Show filter container if there are modules
+            if (moduleSelector.options.length > 1) {
+                filterContainer.style.display = 'block';
+            }
+            
+            function filterByModule(selectedModule) {
+                const sections = document.querySelectorAll('section[data-module]');
+                const allSections = document.querySelectorAll('section:not([data-module]), [data-section]');
+                
+                if (selectedModule === '') {
+                    // Show all sections
+                    sections.forEach(section => {
+                        section.style.display = 'block';
+                        section.style.opacity = '1';
+                    });
+                    allSections.forEach(section => {
+                        section.style.display = 'block';
+                        section.style.opacity = '1';
+                    });
+                } else {
+                    // Hide all sections, then show matching ones
+                    sections.forEach(section => {
+                        if (section.getAttribute('data-module') === selectedModule) {
+                            section.style.display = 'block';
+                            section.style.opacity = '1';
+                        } else {
+                            section.style.display = 'none';
+                            section.style.opacity = '0';
+                        }
+                    });
+                    // Hide module-agnostic sections when filtering
+                    allSections.forEach(section => {
+                        section.style.display = 'none';
+                        section.style.opacity = '0';
+                    });
+                }
+            }
+            
+            moduleSelector.addEventListener('change', function() {
+                filterByModule(this.value);
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                moduleSelector.value = '';
+                filterByModule('');
+            });
+        });
     </script>
 </body>
 </html>

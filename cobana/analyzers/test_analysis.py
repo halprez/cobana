@@ -141,7 +141,21 @@ class TestAnalyzer:
         content = read_file_safely(file_path)
         if content is None:
             return {}
+        return self.analyze_test_file_content(content, file_path, module_name)
 
+    def analyze_test_file_content(
+        self, content: str, file_path: Path, module_name: str
+    ) -> dict[str, Any]:
+        """Analyze a test file from file content (optimization: uses pre-read content).
+
+        Args:
+            content: File content as string
+            file_path: Path to test file
+            module_name: Module the file belongs to
+
+        Returns:
+            Dictionary with test file analysis results
+        """
         # Infer actual module from test imports for smarter association
         inferred_module = self.infer_test_module(
             file_path, module_name, content
@@ -268,7 +282,18 @@ class TestAnalyzer:
         content = read_file_safely(file_path)
         if content is None:
             return
+        self.analyze_testability_content(content, file_path, module_name)
 
+    def analyze_testability_content(
+        self, content: str, file_path: Path, module_name: str
+    ) -> None:
+        """Analyze testability from file content (optimization: uses pre-read content).
+
+        Args:
+            content: File content as string
+            file_path: Path to file
+            module_name: Module name
+        """
         parser = ASTParser(file_path, content)
         functions = parser.get_functions()
 
