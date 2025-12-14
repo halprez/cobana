@@ -498,6 +498,124 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         section.style.display = 'block';
                         section.style.opacity = '1';
                     });
+                    
+                    // Update metric cards with filtered data
+                    updateMetricCardsForModule(selectedModule);
+                }
+            }
+            
+            function updateMetricCardsForModule(selectedModule) {
+                // Calculate metrics based on visible rows for each section
+                const sections = document.querySelectorAll('section[id]');
+                
+                sections.forEach(section => {
+                    const sectionId = section.getAttribute('id');
+                    const tables = section.querySelectorAll('table');
+                    
+                    if (tables.length === 0) return;
+                    
+                    const visibleRows = [];
+                    tables.forEach(table => {
+                        const rows = table.querySelectorAll('tbody tr[data-module]');
+                        rows.forEach(row => {
+                            if (row.getAttribute('data-module') === selectedModule) {
+                                visibleRows.push(row);
+                            }
+                        });
+                    });
+                    
+                    // Calculate statistics based on visible rows
+                    if (visibleRows.length > 0) {
+                        updateSectionMetrics(section, sectionId, visibleRows);
+                    }
+                });
+            }
+            
+            function updateSectionMetrics(section, sectionId, visibleRows) {
+                // Get metric cards in this section
+                const metricCards = section.querySelectorAll('.metric-card');
+                
+                if (sectionId === 'code-size') {
+                    // For code size: sum up SLOC from visible rows
+                    let totalSloc = 0;
+                    visibleRows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 2) {
+                            const sloc = parseInt(cells[1].textContent.trim(), 10) || 0;
+                            totalSloc += sloc;
+                        }
+                    });
+                    
+                    const avgSize = visibleRows.length > 0 ? (totalSloc / visibleRows.length).toFixed(0) : 0;
+                    
+                    if (metricCards.length > 0) {
+                        // Update first card (Total Lines)
+                        const firstValue = metricCards[0].querySelector('.metric-value');
+                        if (firstValue) firstValue.textContent = totalSloc;
+                    }
+                    if (metricCards.length > 3) {
+                        // Update last card (Average File Size)
+                        const lastValue = metricCards[3].querySelector('.metric-value');
+                        if (lastValue) lastValue.textContent = avgSize;
+                    }
+                }
+                
+                if (sectionId === 'complexity') {
+                    // For complexity: calculate average complexity from visible rows
+                    let totalComplexity = 0;
+                    let count = 0;
+                    visibleRows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 2) {
+                            const complexity = parseFloat(cells[1].textContent.trim()) || 0;
+                            totalComplexity += complexity;
+                            count++;
+                        }
+                    });
+                    
+                    const avgComplexity = count > 0 ? (totalComplexity / count).toFixed(2) : 0;
+                    const highCount = visibleRows.filter(row => {
+                        const cells = row.querySelectorAll('td');
+                        return cells.length >= 4 && parseInt(cells[3].textContent.trim(), 10) > 0;
+                    }).length;
+                    
+                    if (metricCards.length > 0) {
+                        const firstValue = metricCards[0].querySelector('.metric-value');
+                        if (firstValue) firstValue.textContent = avgComplexity;
+                    }
+                    if (metricCards.length > 1) {
+                        const secondValue = metricCards[1].querySelector('.metric-value');
+                        if (secondValue) secondValue.textContent = highCount;
+                    }
+                }
+                
+                if (sectionId === 'maintainability') {
+                    // For maintainability: calculate average MI from visible rows
+                    let totalMI = 0;
+                    let count = 0;
+                    visibleRows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 2) {
+                            const mi = parseFloat(cells[1].textContent.trim()) || 0;
+                            totalMI += mi;
+                            count++;
+                        }
+                    });
+                    
+                    const avgMI = count > 0 ? (totalMI / count).toFixed(2) : 0;
+                    const lowCount = visibleRows.filter(row => {
+                        const cells = row.querySelectorAll('td');
+                        return cells.length >= 3 && cells[2].textContent.includes('Low');
+                    }).length;
+                    
+                    if (metricCards.length > 0) {
+                        const firstValue = metricCards[0].querySelector('.metric-value');
+                        if (firstValue) firstValue.textContent = avgMI;
+                    }
+                    if (metricCards.length > 1) {
+                        const secondValue = metricCards[1].querySelector('.metric-value');
+                        if (secondValue) secondValue.textContent = lowCount;
+                    }
                 }
             }
             

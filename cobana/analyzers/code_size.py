@@ -115,8 +115,15 @@ class CodeSizeAnalyzer:
             "comment_ratio": comment_ratio,
         }
 
-        # Analyze functions for size
-        self._analyze_function_sizes(file_path, module_name, content)
+        # Analyze functions and classes for size and count
+        parser = ASTParser(file_path, content)
+        functions = parser.get_functions()
+        classes = parser.get_classes()
+
+        file_results["function_count"] = len(functions)
+        file_results["class_count"] = len(classes)
+
+        self._analyze_function_sizes(file_path, module_name, functions)
 
         # Update overall results
         self._update_results(file_results, module_name)
@@ -124,17 +131,18 @@ class CodeSizeAnalyzer:
         return file_results
 
     def _analyze_function_sizes(
-        self, file_path: Path, module_name: str, content: str
+        self,
+        file_path: Path,
+        module_name: str,
+        functions: list[tuple[str, Any]],
     ) -> None:
         """Analyze function sizes in file.
 
         Args:
             file_path: Path to file
             module_name: Module name
-            content: File content
+            functions: List of (name, node) tuples from parser
         """
-        parser = ASTParser(file_path, content)
-        functions = parser.get_functions()
 
         for func_name, func_node in functions:
             func_lines = count_lines(func_node)
@@ -218,6 +226,8 @@ class CodeSizeAnalyzer:
                 "module": module_name,
                 "sloc": sloc,
                 "comment_ratio": comment_ratio,
+                "function_count": file_results.get("function_count", 0),
+                "class_count": file_results.get("class_count", 0),
             }
         )
 
@@ -258,6 +268,9 @@ class CodeSizeAnalyzer:
 
         # Convert by_module from defaultdict to regular dict
         self.results["by_module"] = dict(self.results["by_module"])
+
+        # Store threshold in results for template use
+        self.results["file_size_threshold"] = self.file_size_threshold
 
         return self.results
 

@@ -173,12 +173,14 @@ class TestAnalyzer:
         is_integration = self._is_integration_test(content)
 
         test_type = "integration" if is_integration else "unit"
+        test_lines = len(content.split("\n"))
 
         file_results = {
             "file": str(file_path),
             "module": inferred_module,  # Use inferred module for better accuracy
             "type": test_type,
             "test_count": len(test_functions),
+            "lines": test_lines,
             "indicators": self._get_integration_indicators(content)
             if is_integration
             else [],

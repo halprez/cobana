@@ -278,34 +278,26 @@ class HtmlReportGenerator:
 
         # Calculate estimated coverage based on test/code ratio
         code_size = self.results.get("code_size", {})
-        total_lines = code_size.get("total_lines", 0)
+        total_lines = code_size.get(
+            "total_loc", 0
+        )  # Use total_loc instead of total_lines
 
-        # Estimate coverage: (test_lines / code_lines) * 100, but capped at 100
-        total_test_lines = sum(
-            len(read_file_safely(Path(test["file"]).resolve()).split("\n"))
-            if read_file_safely(Path(test["file"]).resolve())
-            else 0
-            for test in test_details
-        )
+        # Calculate total test lines from test details (no file reads needed)
+        total_test_lines = sum(test.get("lines", 0) for test in test_details)
 
-        if total_lines > 0:
+        if total_lines > 0 and total_test_lines > 0:
             estimated_coverage = min(
                 (total_test_lines / total_lines) * 100, 100.0
             )
         else:
             estimated_coverage = 0.0
 
-        # Transform test_details to template format
+        # Transform test_details to template format (no file reads needed)
         test_files = [
             {
                 "file": self._format_file_path(test.get("file", "")),
-                "lines": len(
-                    read_file_safely(
-                        Path(test.get("file", "")).resolve()
-                    ).split("\n")
-                )
-                if read_file_safely(Path(test.get("file", "")).resolve())
-                else 0,
+                "lines": test.get("lines", 0),
+                "module": test.get("module", ""),
             }
             for test in test_details
         ]
@@ -532,6 +524,34 @@ class HtmlReportGenerator:
         total_sloc = code_size_results.get("total_sloc", 0)
         avg_file_size = total_sloc / file_count if file_count > 0 else 0
 
+        # Prepare per_file data with module names and relative paths
+        per_file = []
+        for file_data in code_size_results.get("per_file", []):
+            if isinstance(file_data, dict):
+                file_path = file_data.get("file", "")
+                rel_path = self._format_file_path(file_path)
+                module_name = self._extract_module_from_path(file_path)
+                per_file.append(
+                    {
+                        "file": rel_path,
+                        "module": file_data.get("module", module_name),
+                        "sloc": file_data.get("sloc", 0),
+                        "comment_ratio": file_data.get("comment_ratio", 0),
+                        "function_count": file_data.get("function_count", 0),
+                        "class_count": file_data.get("class_count", 0),
+                    }
+                )
+
+        # Get file size threshold from config (default 500)
+        large_files_threshold = self.results.get("code_size", {}).get(
+            "file_size_threshold", 500
+        )
+
+        # Count files larger than threshold
+        large_files_threshold_count = sum(
+            1 for f in per_file if f["sloc"] > large_files_threshold
+        )
+
         return {
             "total_lines": code_size_results.get(
                 "total_sloc", 0
@@ -544,6 +564,9 @@ class HtmlReportGenerator:
             ),  # From class_metrics analyzer
             "avg_file_size": avg_file_size,
             "large_files": large_files,
+            "per_file": per_file,
+            "large_files_threshold": large_files_threshold,
+            "large_files_threshold_count": large_files_threshold_count,
             **code_size_results,
         }
 
@@ -953,7 +976,33 @@ class HtmlReportGenerator:
         </div>
     </div>
 
-    {% if maintainability.get('low_maintainability_files') %}
+    {% if maintainability.get('per_file') %}
+    <details open data-section="maintainability">
+        <summary>📁 Per-File Maintainability Index ({{ maintainability.get('per_file')|length }} files)</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>MI Score</th>
+                    <th>Rank</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in maintainability.get('per_file', []) | sort(attribute='mi_score', reverse=true) %}
+                <tr data-module="{{ file.get('module', '') }}">
+                    <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
+                    <td>
+                        <span class="badge {{ 'badge-success' if file.get('mi_score', 0) >= 65 else 'badge-warning' if file.get('mi_score', 0) >= 50 else 'badge-danger' }}">
+                            {{ "%.1f"|format(file.get('mi_score', 0)) }}
+                        </span>
+                    </td>
+                    <td>{{ file.get('rank', 'N/A') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% elif maintainability.get('low_maintainability_files') %}
     <details open data-section="maintainability">
         <summary>🔴 Low Maintainability Files ({{ maintainability.get('low_maintainability_files')|length }})</summary>
         {% if max_items > 0 and maintainability.get('low_maintainability_files')|length > max_items %}
@@ -1031,7 +1080,36 @@ class HtmlReportGenerator:
         </div>
     </div>
 
-    {% if code_size.get('large_files') %}
+    {% if code_size.get('per_file') %}
+    <details open data-section="code-size">
+        <summary>📁 Large Files ({{ code_size.large_files_threshold_count }} files > {{ code_size.large_files_threshold }} lines)</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Lines of Code</th>
+                    <th>Functions</th>
+                    <th>Classes</th>
+                    <th>Comment Ratio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in code_size.get('per_file', []) | selectattr('sloc', '>', code_size.large_files_threshold) | sort(attribute='sloc', reverse=true) %}
+                <tr data-module="{{ file.get('module', '') }}">
+                    <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
+                    <td>{{ file.get('sloc', 0) }}</td>
+                    <td>{{ file.get('function_count', 0) }}</td>
+                    <td>{{ file.get('class_count', 0) }}</td>
+                    <td>{{ "%.1f"|format(file.get('comment_ratio', 0)) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+            </tbody>
+        </table>
+    </details>
+    {% elif code_size.get('large_files') %}
     <details open data-section="code-size">
         <summary>📈 Largest Files ({{ code_size.get('large_files')|length }})</summary>
         {% if max_items > 0 and code_size.get('large_files')|length > max_items %}
@@ -1051,8 +1129,8 @@ class HtmlReportGenerator:
                 {% for file in code_size.get('large_files', []) %}
                 <tr data-module="{{ file.get('module', '') }}">
                     <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
-                    <td>{{ file.get('lines', 0) }}</td>
-                    <td>{{ "%.1f"|format(file.get('comment_ratio', 0) * 100) }}%</td>
+                    <td>{{ file.get('sloc', 0) }}</td>
+                    <td>{{ "%.1f"|format(file.get('comment_ratio', 0)) }}%</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1108,7 +1186,7 @@ class HtmlReportGenerator:
             </thead>
             <tbody>
                 {% for test_file in tests.test_files %}
-                <tr>
+                <tr data-module="{{ test_file.get('module', '') }}">
                     <td><code>{{ test_file.file | highlight_module }}</code></td>
                     <td>{{ test_file.lines }}</td>
                 </tr>
