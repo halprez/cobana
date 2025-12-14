@@ -466,34 +466,37 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
             
             function filterByModule(selectedModule) {
-                const sections = document.querySelectorAll('section[data-module]');
-                const allSections = document.querySelectorAll('section:not([data-module]), [data-section]');
+                // Keep all sections visible, but filter rows within tables
+                const allRows = document.querySelectorAll('table tbody tr[data-module]');
+                const allSections = document.querySelectorAll('section');
                 
                 if (selectedModule === '') {
-                    // Show all sections
-                    sections.forEach(section => {
-                        section.style.display = 'block';
-                        section.style.opacity = '1';
+                    // Show all rows
+                    allRows.forEach(row => {
+                        row.style.display = 'table-row';
+                        row.style.opacity = '1';
                     });
+                    // Show all sections
                     allSections.forEach(section => {
                         section.style.display = 'block';
                         section.style.opacity = '1';
                     });
                 } else {
-                    // Hide all sections, then show matching ones
-                    sections.forEach(section => {
-                        if (section.getAttribute('data-module') === selectedModule) {
-                            section.style.display = 'block';
-                            section.style.opacity = '1';
+                    // Filter rows to only show matching module
+                    allRows.forEach(row => {
+                        if (row.getAttribute('data-module') === selectedModule) {
+                            row.style.display = 'table-row';
+                            row.style.opacity = '1';
                         } else {
-                            section.style.display = 'none';
-                            section.style.opacity = '0';
+                            row.style.display = 'none';
+                            row.style.opacity = '0';
                         }
                     });
-                    // Hide module-agnostic sections when filtering
+                    
+                    // Keep all sections visible, but they will only show relevant rows
                     allSections.forEach(section => {
-                        section.style.display = 'none';
-                        section.style.opacity = '0';
+                        section.style.display = 'block';
+                        section.style.opacity = '1';
                     });
                 }
             }
