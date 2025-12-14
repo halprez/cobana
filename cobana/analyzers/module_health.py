@@ -14,12 +14,12 @@ class ModuleHealthCalculator:
 
     # Weights for each metric in the health score
     WEIGHTS = {
-        'coupling': 0.30,      # Database coupling (highest priority)
-        'complexity': 0.20,    # Code complexity
-        'maintainability': 0.20,  # Maintainability index
-        'testability': 0.15,   # Test coverage and testability
-        'smells': 0.10,        # Code smells
-        'debt': 0.05,          # Technical debt ratio
+        "coupling": 0.30,  # Database coupling (highest priority)
+        "complexity": 0.20,  # Code complexity
+        "maintainability": 0.20,  # Maintainability index
+        "testability": 0.15,  # Test coverage and testability
+        "smells": 0.10,  # Code smells
+        "debt": 0.05,  # Technical debt ratio
     }
 
     def __init__(self, config: dict[str, Any]):
@@ -30,9 +30,9 @@ class ModuleHealthCalculator:
         """
         self.config = config
         self.results: dict[str, Any] = {
-            'overall_health': 0.0,
-            'by_module': {},
-            'module_rankings': [],
+            "overall_health": 0.0,
+            "by_module": {},
+            "module_rankings": [],
         }
 
     def calculate(
@@ -66,7 +66,11 @@ class ModuleHealthCalculator:
 
         for module_name in modules:
             # Skip if module has no files
-            module_sloc = code_size_results.get('by_module', {}).get(module_name, {}).get('total_sloc', 0)
+            module_sloc = (
+                code_size_results.get("by_module", {})
+                .get(module_name, {})
+                .get("total_sloc", 0)
+            )
             if module_sloc == 0:
                 continue
 
@@ -81,13 +85,13 @@ class ModuleHealthCalculator:
                 code_size_results,
             )
 
-            self.results['by_module'][module_name] = health
-            total_health += health['score']
+            self.results["by_module"][module_name] = health
+            total_health += health["score"]
             module_count += 1
 
         # Calculate overall health
         if module_count > 0:
-            self.results['overall_health'] = total_health / module_count
+            self.results["overall_health"] = total_health / module_count
 
         # Create module rankings
         self._create_rankings()
@@ -116,54 +120,58 @@ class ModuleHealthCalculator:
         """
         # Normalize each metric to 0-100 scale
         coupling_score = self._normalize_coupling(
-            db_coupling_results.get('by_module', {}).get(module_name, {})
+            db_coupling_results.get("by_module", {}).get(module_name, {})
         )
 
         complexity_score = self._normalize_complexity(
-            complexity_results.get('by_module', {}).get(module_name, {})
+            complexity_results.get("by_module", {}).get(module_name, {})
         )
 
-        maintainability_score = maintainability_results.get('by_module', {}).get(
-            module_name, {}
-        ).get('avg_mi', 50.0)  # Already 0-100 scale
+        maintainability_score = (
+            maintainability_results.get("by_module", {})
+            .get(module_name, {})
+            .get("avg_mi", 50.0)
+        )  # Already 0-100 scale
 
-        testability_score = test_results.get('by_module', {}).get(
-            module_name, {}
-        ).get('testability_score', 50.0)  # Already 0-100 scale
+        testability_score = (
+            test_results.get("by_module", {})
+            .get(module_name, {})
+            .get("testability_score", 50.0)
+        )  # Already 0-100 scale
 
         smells_score = self._normalize_smells(
-            code_smells_results.get('by_module', {}).get(module_name, {}),
-            code_size_results.get('by_module', {}).get(module_name, {})
+            code_smells_results.get("by_module", {}).get(module_name, {}),
+            code_size_results.get("by_module", {}).get(module_name, {}),
         )
 
         debt_score = self._normalize_debt(
-            tech_debt_results.get('by_module', {}).get(module_name, {})
+            tech_debt_results.get("by_module", {}).get(module_name, {})
         )
 
         # Calculate weighted health score
         health_score = (
-            coupling_score * self.WEIGHTS['coupling'] +
-            complexity_score * self.WEIGHTS['complexity'] +
-            maintainability_score * self.WEIGHTS['maintainability'] +
-            testability_score * self.WEIGHTS['testability'] +
-            smells_score * self.WEIGHTS['smells'] +
-            debt_score * self.WEIGHTS['debt']
+            coupling_score * self.WEIGHTS["coupling"]
+            + complexity_score * self.WEIGHTS["complexity"]
+            + maintainability_score * self.WEIGHTS["maintainability"]
+            + testability_score * self.WEIGHTS["testability"]
+            + smells_score * self.WEIGHTS["smells"]
+            + debt_score * self.WEIGHTS["debt"]
         )
 
         # Categorize health
         category = self._categorize_health(health_score)
 
         return {
-            'module': module_name,
-            'score': health_score,
-            'category': category,
-            'components': {
-                'coupling': coupling_score,
-                'complexity': complexity_score,
-                'maintainability': maintainability_score,
-                'testability': testability_score,
-                'smells': smells_score,
-                'debt': debt_score,
+            "module": module_name,
+            "score": health_score,
+            "category": category,
+            "components": {
+                "coupling": coupling_score,
+                "complexity": complexity_score,
+                "maintainability": maintainability_score,
+                "testability": testability_score,
+                "smells": smells_score,
+                "debt": debt_score,
             },
         }
 
@@ -178,7 +186,7 @@ class ModuleHealthCalculator:
         Returns:
             Normalized score
         """
-        severity = module_stats.get('severity_score', 0)
+        severity = module_stats.get("severity_score", 0)
 
         # Severity can range widely. Use log scale.
         # No violations = 100, increasing violations decrease score
@@ -201,7 +209,7 @@ class ModuleHealthCalculator:
         Returns:
             Normalized score
         """
-        avg_complexity = module_stats.get('avg_complexity', 5.0)
+        avg_complexity = module_stats.get("avg_complexity", 5.0)
 
         # Complexity 1-5 = excellent (100-80)
         # Complexity 6-10 = good (80-60)
@@ -219,9 +227,7 @@ class ModuleHealthCalculator:
                 return max(0, 20 - (avg_complexity - 20))
 
     def _normalize_smells(
-        self,
-        smell_stats: dict[str, Any],
-        size_stats: dict[str, Any]
+        self, smell_stats: dict[str, Any], size_stats: dict[str, Any]
     ) -> float:
         """Normalize code smells score to 0-100 (100 = best).
 
@@ -234,8 +240,8 @@ class ModuleHealthCalculator:
         Returns:
             Normalized score
         """
-        total_smells = smell_stats.get('total_smells', 0)
-        sloc = size_stats.get('total_sloc', 1)
+        total_smells = smell_stats.get("total_smells", 0)
+        sloc = size_stats.get("total_sloc", 1)
 
         # Calculate smells per 1000 lines
         smells_per_kloc = (total_smells / sloc) * 1000 if sloc > 0 else 0
@@ -258,7 +264,7 @@ class ModuleHealthCalculator:
         Returns:
             Normalized score
         """
-        debt_ratio = debt_stats.get('debt_ratio', 0)
+        debt_ratio = debt_stats.get("debt_ratio", 0)
 
         # Map SQALE ratings to scores
         # A (≤5%) = 100-90
@@ -290,31 +296,31 @@ class ModuleHealthCalculator:
         """
         match score:
             case s if s >= 80:
-                return 'excellent'
+                return "excellent"
             case s if s >= 60:
-                return 'good'
+                return "good"
             case s if s >= 40:
-                return 'warning'
+                return "warning"
             case s if s >= 20:
-                return 'critical'
+                return "critical"
             case _:
-                return 'emergency'
+                return "emergency"
 
     def _create_rankings(self) -> None:
-        """Create ranked list of modules by health."""
+        """Create ranked list of modules by health (worst first)."""
         rankings = [
             {
-                'module': module_name,
-                'score': health['score'],
-                'category': health['category'],
+                "module": module_name,
+                "score": health["score"],
+                "category": health["category"],
             }
-            for module_name, health in self.results['by_module'].items()
+            for module_name, health in self.results["by_module"].items()
         ]
 
-        # Sort by score descending
-        rankings.sort(key=lambda x: x['score'], reverse=True)
+        # Sort by score ascending (worst first)
+        rankings.sort(key=lambda x: x["score"])
 
-        self.results['module_rankings'] = rankings
+        self.results["module_rankings"] = rankings
 
     def get_summary(self) -> dict[str, Any]:
         """Get summary statistics.
@@ -322,20 +328,21 @@ class ModuleHealthCalculator:
         Returns:
             Summary dictionary
         """
-        if not self.results['module_rankings']:
+        if not self.results["module_rankings"]:
             return {
-                'overall_health': 0.0,
-                'best_module': None,
-                'worst_module': None,
+                "overall_health": 0.0,
+                "best_module": None,
+                "worst_module": None,
             }
 
-        best = self.results['module_rankings'][0]
-        worst = self.results['module_rankings'][-1]
+        # Rankings are now worst first, so reverse indices
+        worst = self.results["module_rankings"][0]
+        best = self.results["module_rankings"][-1]
 
         return {
-            'overall_health': round(self.results['overall_health'], 1),
-            'best_module': best['module'],
-            'best_score': round(best['score'], 1),
-            'worst_module': worst['module'],
-            'worst_score': round(worst['score'], 1),
+            "overall_health": round(self.results["overall_health"], 1),
+            "best_module": best["module"],
+            "best_score": round(best["score"], 1),
+            "worst_module": worst["module"],
+            "worst_score": round(worst["score"], 1),
         }

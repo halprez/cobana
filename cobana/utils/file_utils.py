@@ -19,7 +19,7 @@ class FileScanner:
         root_path: Path | str,
         exclude_patterns: list[str] | None = None,
         verbose: bool = False,
-        max_depth: int | None = None
+        max_depth: int | None = None,
     ):
         """Initialize file scanner.
 
@@ -49,10 +49,14 @@ class FileScanner:
             NotADirectoryError: If root_path is not a directory
         """
         if not self.root_path.exists():
-            raise FileNotFoundError(f"Root path does not exist: {self.root_path}")
+            raise FileNotFoundError(
+                f"Root path does not exist: {self.root_path}"
+            )
 
         if not self.root_path.is_dir():
-            raise NotADirectoryError(f"Root path is not a directory: {self.root_path}")
+            raise NotADirectoryError(
+                f"Root path is not a directory: {self.root_path}"
+            )
 
         # Find all .py files
         for py_file in self.root_path.rglob("*.py"):
@@ -189,3 +193,39 @@ def get_file_stats(file_path: Path) -> dict[str, int]:
         "blank_lines": blank_lines,
         "file_size": file_path.stat().st_size,
     }
+
+
+def format_file_path(
+    file_path: Path | str, root_path: Path | str, module_name: str = ""
+) -> str:
+    """Format file path as relative to root with optional module highlight.
+
+    Args:
+        file_path: Path to file (absolute or relative)
+        root_path: Root codebase path
+        module_name: Module name to highlight
+
+    Returns:
+        Formatted path string (e.g., "module_name/path/to/file.py")
+    """
+    file_path = Path(file_path).resolve()
+    root_path = Path(root_path).resolve()
+
+    try:
+        rel_path = file_path.relative_to(root_path)
+    except ValueError:
+        # Path is not relative to root, return as-is
+        return str(file_path)
+
+    rel_str = str(rel_path)
+
+    # If module_name is provided and path starts with it, keep it highlighted
+    if module_name:
+        parts = rel_str.split("/")
+        if parts and parts[0] == module_name:
+            # Return with module name first for emphasis
+            return rel_str
+        # Otherwise prepend module name
+        return f"{module_name}/{rel_str}"
+
+    return rel_str
