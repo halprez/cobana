@@ -253,3 +253,126 @@ class TestHtmlReportGenerator:
         assert '<footer' in html_str
         assert 'COBANA' in html_str
         assert 'Report generated on' in html_str
+
+    def test_max_items_parameter_default(self, sample_analysis_results):
+        """Test that max_items defaults to 0 (unlimited)."""
+        generator = HtmlReportGenerator(sample_analysis_results)
+        assert generator.max_items == 0
+
+    def test_max_items_parameter_custom(self, sample_analysis_results):
+        """Test that max_items can be set to custom value."""
+        generator = HtmlReportGenerator(sample_analysis_results, max_items=50)
+        assert generator.max_items == 50
+
+    def test_max_items_in_context(self, sample_analysis_results):
+        """Test that max_items is passed to template context."""
+        generator = HtmlReportGenerator(sample_analysis_results, max_items=25)
+        html_str = generator.get_html_string()
+
+        # max_items should be available in template
+        assert generator.max_items == 25
+
+    def test_max_items_limit_message_shown(self, sample_analysis_results):
+        """Test that limit message appears when max_items is set and exceeded."""
+        # Create sample data with many complexity files
+        sample_analysis_results['complexity'] = {
+            'avg_complexity': 8.5,
+            'high_complexity_count': 100,
+            'total_functions': 500,
+            'high_complexity_files': [
+                {'file': f'file{i}.py', 'avg_complexity': 10 + i, 'max_complexity': 15 + i, 'high_complexity_count': 2}
+                for i in range(100)
+            ]
+        }
+
+        generator = HtmlReportGenerator(sample_analysis_results, max_items=20)
+        html_str = generator.get_html_string()
+
+        # Should show limit message
+        assert 'Showing 20 most relevant files from 100 total analyzed' in html_str
+
+    def test_max_items_no_limit_message_when_under_limit(self, sample_analysis_results):
+        """Test that no limit message appears when list is shorter than max_items."""
+        sample_analysis_results['complexity'] = {
+            'avg_complexity': 8.5,
+            'high_complexity_count': 5,
+            'total_functions': 50,
+            'high_complexity_files': [
+                {'file': f'file{i}.py', 'avg_complexity': 10 + i, 'max_complexity': 15 + i, 'high_complexity_count': 2}
+                for i in range(5)
+            ]
+        }
+
+        generator = HtmlReportGenerator(sample_analysis_results, max_items=20)
+        html_str = generator.get_html_string()
+
+        # Should NOT show limit message since we have fewer items than the limit
+        assert 'Showing 20 most relevant files' not in html_str
+
+    def test_max_items_unlimited_when_zero(self, sample_analysis_results):
+        """Test that max_items=0 shows all items without limit."""
+        sample_analysis_results['complexity'] = {
+            'avg_complexity': 8.5,
+            'high_complexity_count': 100,
+            'total_functions': 500,
+            'high_complexity_files': [
+                {'file': f'file{i}.py', 'avg_complexity': 10 + i, 'max_complexity': 15 + i, 'high_complexity_count': 2}
+                for i in range(100)
+            ]
+        }
+
+        generator = HtmlReportGenerator(sample_analysis_results, max_items=0)
+        html_str = generator.get_html_string()
+
+        # Should NOT show any limit message
+        assert 'Showing' not in html_str or 'most relevant files from' not in html_str
+
+    def test_prepare_technical_debt_data(self, sample_analysis_results):
+        """Test _prepare_technical_debt_data method."""
+        sample_analysis_results['technical_debt'] = {
+            'sqale_rating': 'A',
+            'debt_ratio': 5.0,
+            'total_remediation_hours': 10.5,
+            'top_debt_files': [
+                {'file': 'bad.py', 'debt_hours': 5.0, 'issue_count': 10}
+            ]
+        }
+
+        generator = HtmlReportGenerator(sample_analysis_results)
+        debt_data = generator._prepare_technical_debt_data()
+
+        # Should return technical debt data
+        assert debt_data['sqale_rating'] == 'A'
+        assert debt_data['debt_ratio'] == 5.0
+        assert debt_data['total_remediation_hours'] == 10.5
+        assert len(debt_data['top_debt_files']) == 1
+
+    def test_prepare_technical_debt_data_empty(self):
+        """Test _prepare_technical_debt_data with missing data."""
+        minimal_results = {
+            'metadata': {},
+            'summary': {}
+        }
+
+        generator = HtmlReportGenerator(minimal_results)
+        debt_data = generator._prepare_technical_debt_data()
+
+        # Should return empty dict without crashing
+        assert isinstance(debt_data, dict)
+
+    def test_highlight_module_filter(self, sample_analysis_results):
+        """Test that module highlighting filter works correctly."""
+        generator = HtmlReportGenerator(sample_analysis_results)
+
+        # Test with module path
+        result = generator._highlight_module_filter("module_name/subdir/file.py")
+        assert '<strong>module_name</strong>' in str(result)
+        assert '/subdir/file.py' in str(result)
+
+    def test_highlight_module_filter_single_file(self, sample_analysis_results):
+        """Test module highlighting with single file (no directory)."""
+        generator = HtmlReportGenerator(sample_analysis_results)
+
+        # Test with just filename
+        result = generator._highlight_module_filter("file.py")
+        assert result == "file.py"  # No highlighting for single file

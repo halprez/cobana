@@ -227,7 +227,10 @@ class HtmlReportGenerator:
             # Highlight first part (module name) in bold
             module = parts[0]
             rest = "/".join(parts[1:])
-            from jinja2 import Markup
+            try:
+                from markupsafe import Markup
+            except ImportError:
+                from jinja2 import Markup
 
             return Markup(f"<strong>{module}</strong>/{rest}")
         return rel_path
@@ -472,6 +475,17 @@ class HtmlReportGenerator:
             "large_files": large_files,
             **code_size_results,
         }
+
+    def _prepare_technical_debt_data(self) -> dict[str, Any]:
+        """Prepare technical debt data for template rendering.
+
+        Returns:
+            Dictionary with template-friendly technical debt data
+        """
+        technical_debt_results = self.results.get("technical_debt", {})
+
+        # Return the data as-is since it's already in the correct format
+        return technical_debt_results
 
     def _prepare_complexity_data(self) -> dict[str, Any]:
         """Prepare complexity data for template rendering, aggregated by file.
@@ -758,7 +772,8 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in complexity.get('high_complexity_files', [])[:max_items] if max_items > 0 else complexity.get('high_complexity_files', []) %}
+                {% set files = complexity.get('high_complexity_files', [])[:max_items] if max_items > 0 else complexity.get('high_complexity_files', []) %}
+                {% for file in files %}
                 <tr>
                     <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>
@@ -831,7 +846,8 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in maintainability.get('low_maintainability_files', [])[:max_items] if max_items > 0 else maintainability.get('low_maintainability_files', []) %}
+                {% set files = maintainability.get('low_maintainability_files', [])[:max_items] if max_items > 0 else maintainability.get('low_maintainability_files', []) %}
+                {% for file in files %}
                 <tr>
                     <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>
@@ -1032,7 +1048,8 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in code_smells.long_files[:max_items] if max_items > 0 else code_smells.long_files %}
+                {% set files = code_smells.long_files[:max_items] if max_items > 0 else code_smells.long_files %}
+                {% for file in files %}
                 <tr>
                     <td><code>{{ file.file | highlight_module }}</code></td>
                     <td>
@@ -1066,7 +1083,8 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for cls in code_smells.complex_classes[:max_items] if max_items > 0 else code_smells.complex_classes %}
+                {% set classes = code_smells.complex_classes[:max_items] if max_items > 0 else code_smells.complex_classes %}
+                {% for cls in classes %}
                 <tr>
                     <td><code>{{ cls.class_name }}</code></td>
                     <td><code>{{ cls.file | highlight_module }}</code></td>
@@ -1167,7 +1185,8 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in technical_debt.top_debt_files[:max_items] if max_items > 0 else technical_debt.top_debt_files %}
+                {% set files = technical_debt.top_debt_files[:max_items] if max_items > 0 else technical_debt.top_debt_files %}
+                {% for file in files %}
                 <tr>
                     <td><code>{{ file.file | highlight_module }}</code></td>
                     <td>
