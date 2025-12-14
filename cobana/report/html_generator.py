@@ -323,22 +323,19 @@ class HtmlReportGenerator:
         """
         maintainability_results = self.results.get("maintainability", {})
 
-        # Get per_file data if available
-        per_file = maintainability_results.get("per_file", {})
+        # Get per_file data if available (it's a list)
+        per_file = maintainability_results.get("per_file", [])
 
         # Transform per_file data to list format with relative paths
         low_maintainability_files = []
-        for file_path, file_data in per_file.items():
+        for file_data in per_file:
             if isinstance(file_data, dict):
+                file_path = file_data.get("file", "")
                 rel_path = self._format_file_path(file_path)
                 low_maintainability_files.append(
                     {
                         "file": rel_path,
-                        "maintainability_index": file_data.get(
-                            "maintainability_index", 0
-                        ),
-                        "functions_count": file_data.get("functions_count", 0),
-                        "avg_complexity": file_data.get("avg_complexity", 0),
+                        "maintainability_index": file_data.get("mi_score", 0),
                     }
                 )
 
@@ -346,9 +343,7 @@ class HtmlReportGenerator:
         low_maintainability_files.sort(key=lambda x: x["maintainability_index"])
 
         return {
-            "avg_maintainability": maintainability_results.get(
-                "avg_maintainability", 0
-            ),
+            "avg_mi": maintainability_results.get("avg_mi", 0),
             "low_maintainability_count": len(
                 [
                     f
@@ -368,20 +363,19 @@ class HtmlReportGenerator:
         """
         code_size_results = self.results.get("code_size", {})
 
-        # Get per_file data if available
-        per_file = code_size_results.get("per_file", {})
+        # Get per_file data if available (it's a list)
+        per_file = code_size_results.get("per_file", [])
 
         # Transform per_file data to list format with relative paths
         large_files = []
-        for file_path, file_data in per_file.items():
+        for file_data in per_file:
             if isinstance(file_data, dict):
+                file_path = file_data.get("file", "")
                 rel_path = self._format_file_path(file_path)
                 large_files.append(
                     {
                         "file": rel_path,
-                        "lines": file_data.get("lines", 0),
-                        "functions": file_data.get("functions", 0),
-                        "classes": file_data.get("classes", 0),
+                        "lines": file_data.get("sloc", 0),
                     }
                 )
 
@@ -392,7 +386,6 @@ class HtmlReportGenerator:
             "total_lines": code_size_results.get("total_lines", 0),
             "total_functions": code_size_results.get("total_functions", 0),
             "total_classes": code_size_results.get("total_classes", 0),
-            "avg_file_size": code_size_results.get("avg_file_size", 0),
             "large_files": large_files,
             **code_size_results,
         }
@@ -675,9 +668,9 @@ class HtmlReportGenerator:
     </div>
 
     <div class="metric-cards">
-        <div class="metric-card {{ 'success' if maintainability.get('avg_maintainability', 0) >= 65 else 'warning' if maintainability.get('avg_maintainability', 0) >= 50 else 'danger' }}">
+        <div class="metric-card {{ 'success' if maintainability.get('avg_mi', 0) >= 65 else 'warning' if maintainability.get('avg_mi', 0) >= 50 else 'danger' }}">
             <h4>Average MI</h4>
-            <div class="metric-value">{{ "%.1f"|format(maintainability.get('avg_maintainability', 0)) }}</div>
+            <div class="metric-value">{{ "%.1f"|format(maintainability.get('avg_mi', 0)) }}</div>
             <div class="metric-label">Out of 100</div>
         </div>
         <div class="metric-card {{ 'danger' if maintainability.get('low_maintainability_count', 0) > 0 else 'success' }}">
@@ -695,8 +688,6 @@ class HtmlReportGenerator:
                 <tr>
                     <th>File</th>
                     <th>MI Score</th>
-                    <th>Functions</th>
-                    <th>Avg Complexity</th>
                 </tr>
             </thead>
             <tbody>
@@ -708,8 +699,6 @@ class HtmlReportGenerator:
                             {{ "%.1f"|format(file.get('maintainability_index', 0)) }}
                         </span>
                     </td>
-                    <td>{{ file.get('functions_count', 0) }}</td>
-                    <td>{{ "%.2f"|format(file.get('avg_complexity', 0)) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
