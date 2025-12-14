@@ -321,48 +321,63 @@ class HtmlReportGenerator:
             Dictionary with template-friendly code smells data
         """
         code_smells_results = self.results.get("code_smells", {})
+        class_metrics_results = self.results.get("class_metrics", {})
 
-        # Transform long_methods to file-level data grouped by module
+        # Transform long_methods to file-level data
+        # Note: long_methods only has module names, not file paths
         long_methods = code_smells_results.get("long_methods", [])
         long_files_dict: dict[str, dict[str, Any]] = {}
 
         for method in long_methods:
-            # Use module as file path
-            file_path = method.get("module", "unknown")
+            # Group by module since we don't have file paths
+            module_name = method.get("module", "unknown")
 
-            if file_path not in long_files_dict:
-                rel_path = (
-                    self._format_file_path(file_path)
-                    if file_path != "unknown"
-                    else "unknown"
-                )
-                module_name = (
-                    self._extract_module_from_path(file_path)
-                    if file_path != "unknown"
-                    else ""
-                )
-                long_files_dict[file_path] = {
-                    "file": rel_path,
+            if module_name not in long_files_dict:
+                long_files_dict[module_name] = {
+                    "file": module_name,  # Using module name as identifier
                     "module": module_name,
                     "lines": method.get("sloc", 0),
-                    "functions": 0,
+                    "functions": 1,
                 }
-            long_files_dict[file_path]["functions"] += 1
+            else:
+                long_files_dict[module_name]["functions"] += 1
+                # Keep track of max SLOC in this module
+                long_files_dict[module_name]["lines"] = max(
+                    long_files_dict[module_name]["lines"],
+                    method.get("sloc", 0)
+                )
 
         long_files = list(long_files_dict.values())
 
-        # Count complex classes as distinct long methods (functions with high complexity)
-        # Since the analyzer tracks long_methods, we use that as a proxy for complexity
-        complex_classes_count = len(
-            set(m.get("function", "") for m in long_methods)
-        )
+        # Get complex classes from class_metrics analyzer
+        # Use WMC (Weighted Methods per Class) > 50 as threshold for complex classes
+        per_class = class_metrics_results.get("per_class", [])
+        complex_classes = []
+
+        for cls_data in per_class:
+            wmc = cls_data.get("wmc", 0)
+            # Classes with high WMC (> 50) are considered complex
+            if wmc > 50 or cls_data.get("cohesion_level") == "low":
+                file_path = cls_data.get("file", "")
+                rel_path = self._format_file_path(file_path) if file_path else "unknown"
+                module_name = self._extract_module_from_path(file_path) if file_path else ""
+
+                complex_classes.append({
+                    "class_name": cls_data.get("class", ""),
+                    "file": rel_path,
+                    "module": module_name,
+                    "method_count": cls_data.get("methods", 0),
+                    "avg_complexity": wmc / cls_data.get("methods", 1) if cls_data.get("methods", 0) > 0 else 0,
+                    "wmc": wmc,
+                    "cohesion": cls_data.get("cohesion_level", "unknown"),
+                })
 
         # Map analyzer fields to template expectations
         return {
             "long_files_count": len(long_files),
-            "complex_classes_count": complex_classes_count,
+            "complex_classes_count": len(complex_classes),
             "long_files": long_files,
-            "complex_classes": [],  # Not tracked by current analyzer
+            "complex_classes": complex_classes,
             # Include all other fields from results
             **code_smells_results,
         }
@@ -978,7 +993,7 @@ class HtmlReportGenerator:
 
     {% if maintainability.get('per_file') %}
     <details open data-section="maintainability">
-        <summary>📁 Per-File Maintainability Index ({{ maintainability.get('per_file')|length }} files)</summary>
+        <summary>📁 Per-File Maintainability Index ({{ maintainability.get('per_file')|length }} files) - Worst First</summary>
         <table>
             <thead>
                 <tr>
@@ -988,7 +1003,7 @@ class HtmlReportGenerator:
                 </tr>
             </thead>
             <tbody>
-                {% for file in maintainability.get('per_file', []) | sort(attribute='mi_score', reverse=true) %}
+                {% for file in maintainability.get('per_file', []) | sort(attribute='mi_score') %}
                 <tr data-module="{{ file.get('module', '') }}">
                     <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>

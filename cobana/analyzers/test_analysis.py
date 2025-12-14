@@ -58,16 +58,60 @@ class TestAnalyzer:
             "test_details": [],
         }
 
-        # Patterns for detection
+        # Patterns for test categorization
         self.db_import_pattern = re.compile(r"from\s+vf_db\s+import\s+db")
         self.db_fixture_pattern = re.compile(
             r"@pytest\.fixture.*\n\s*def\s+.*db.*\("
         )
 
+        # Integration test indicators (external dependencies)
+        self.integration_patterns = {
+            # Database
+            "database": [
+                r"import\s+(?:psycopg2|pymongo|pymysql|sqlite3|sqlalchemy)",
+                r"from\s+(?:psycopg2|pymongo|pymysql|sqlite3|sqlalchemy)",
+                r"MongoClient|mysql\.connector|psycopg2\.connect",
+                r"mongomock|fakeredis",
+                r"@pytest\.fixture.*\(.*db.*\)",
+            ],
+            # Network/API
+            "network": [
+                r"import\s+(?:requests|httpx|urllib|aiohttp)",
+                r"from\s+(?:requests|httpx|urllib|aiohttp)",
+                r"requests\.(?:get|post|put|delete)",
+                r"httpx\.(?:Client|AsyncClient)",
+                r"responses\.mock",
+            ],
+            # File System
+            "filesystem": [
+                r"@pytest\.fixture.*\(.*tmp_path.*\)",
+                r"tempfile\.(?:mkdtemp|NamedTemporaryFile)",
+                r"shutil\.(?:copy|move|rmtree)",
+                r"Path\(.*\)\.(?:write_text|read_text|mkdir)",
+            ],
+            # External Process
+            "subprocess": [
+                r"import\s+subprocess",
+                r"subprocess\.(?:run|Popen|call|check_output)",
+            ],
+            # Time-dependent
+            "time": [
+                r"time\.sleep",
+                r"@pytest\.mark\.slow",
+                r"asyncio\.sleep",
+            ],
+        }
+
     def infer_test_module(
         self, file_path: Path, detected_module: str, content: str
     ) -> str:
         """Infer which module a test file belongs to by analyzing imports.
+
+        Uses multiple strategies:
+        1. Analyze relative imports (from ..module, from ...module)
+        2. Look at absolute imports from the codebase
+        3. Check file path structure (tests/module_name/test_*.py -> module_name)
+        4. Fall back to detected module from path
 
         Args:
             file_path: Path to test file
@@ -77,45 +121,89 @@ class TestAnalyzer:
         Returns:
             Best guess for module the test belongs to
         """
-        # Look for imports from sibling modules
-        # Pattern: from ../module_name import ... or from module_name import ...
-        import_pattern = re.compile(
-            r"from\s+\.\.?(\w+)\s+import|from\s+(\w+)\s+import"
+        # Common test/utility modules to ignore
+        ignore_modules = {
+            "typing", "pytest", "unittest", "mock", "mongomock", "fakeredis",
+            "requests", "httpx", "pathlib", "os", "sys", "json", "re",
+            "datetime", "time", "collections", "itertools", "functools",
+            "asyncio", "logging", "conftest", "fixtures", "helpers",
+        }
+
+        # Pattern for relative imports: from ..module or from ...module
+        relative_import_pattern = re.compile(
+            r"from\s+(\.{1,3})(\w+)\s+import"
         )
-        matches = import_pattern.findall(content)
+        # Pattern for absolute imports
+        absolute_import_pattern = re.compile(
+            r"from\s+([a-zA-Z_]\w+(?:\.[a-zA-Z_]\w+)*)\s+import"
+        )
 
-        if matches:
-            # Get unique module names from imports
-            imported_modules = set()
-            for match in matches:
-                module = match[0] or match[1]
-                if module and module not in [
-                    "typing",
-                    "pytest",
-                    "unittest",
-                    "mock",
-                    "mongomock",
-                ]:
-                    imported_modules.add(module)
+        imported_modules = set()
 
-            # If only one module imported, that's likely the module being tested
+        # Check relative imports (these are most likely to indicate the tested module)
+        relative_matches = relative_import_pattern.findall(content)
+        for dots, module in relative_matches:
+            if module and module not in ignore_modules:
+                imported_modules.add(module)
+
+        # If we found relative imports, use those
+        if imported_modules:
+            # Prefer the most commonly imported module
             if len(imported_modules) == 1:
                 return list(imported_modules)[0]
-
-            # If multiple modules, prefer the one that appears in the detected module
+            # If multiple, prefer one matching detected module
             for mod in imported_modules:
                 if mod in detected_module or detected_module in mod:
                     return mod
+            return list(imported_modules)[0]
 
-            # Otherwise use the first imported module
-            if imported_modules:
-                return list(imported_modules)[0]
+        # Check absolute imports
+        absolute_matches = absolute_import_pattern.findall(content)
+        for module_path in absolute_matches:
+            # Get the first component (top-level module)
+            top_module = module_path.split(".")[0]
+            if top_module and top_module not in ignore_modules:
+                # Avoid common standard library modules
+                if not top_module.startswith("_") and top_module.islower():
+                    imported_modules.add(top_module)
+
+        # Filter to modules that might be from this codebase
+        # (simple heuristic: short names are more likely to be local modules)
+        local_modules = {m for m in imported_modules if len(m) < 20}
+
+        if local_modules:
+            if len(local_modules) == 1:
+                return list(local_modules)[0]
+            # Prefer module matching detected module
+            for mod in local_modules:
+                if mod in detected_module or detected_module in mod:
+                    return mod
+            return list(local_modules)[0]
+
+        # Check file path structure for hints
+        # e.g., tests/analyzers/test_db.py -> analyzers
+        path_parts = file_path.parts
+        test_dir_indices = [i for i, part in enumerate(path_parts)
+                           if part in {"test", "tests", "testing", "__tests__"}]
+        if test_dir_indices:
+            # Get directory after test dir
+            test_dir_idx = test_dir_indices[-1]
+            if test_dir_idx + 1 < len(path_parts):
+                next_dir = path_parts[test_dir_idx + 1]
+                # If it's not a file and looks like a module name
+                if not next_dir.endswith(".py") and next_dir not in ignore_modules:
+                    return next_dir
 
         # Fall back to detected module from file path
         return detected_module
 
     def is_test_file(self, file_path: Path) -> bool:
         """Check if file is a test file.
+
+        Uses multiple heuristics:
+        1. Filename patterns (test_*.py or *_test.py)
+        2. Located in test directories (test/, tests/, testing/)
+        3. Contains test classes or functions (checked via content)
 
         Args:
             file_path: Path to file
@@ -124,7 +212,25 @@ class TestAnalyzer:
             True if file is a test file
         """
         name = file_path.name
-        return name.startswith("test_") or name.endswith("_test.py")
+        path_str = str(file_path)
+
+        # Check filename patterns
+        if name.startswith("test_") or name.endswith("_test.py"):
+            return True
+
+        # Check if in test directory
+        path_parts = file_path.parts
+        test_dir_names = {"test", "tests", "testing", "spec", "specs", "__tests__"}
+        if any(part in test_dir_names for part in path_parts):
+            # If in test directory and is a Python file, likely a test
+            if name.endswith(".py") and not name.startswith("__"):
+                return True
+
+        # Check for conftest.py (pytest configuration, always in test dirs)
+        if name == "conftest.py":
+            return True
+
+        return False
 
     def analyze_test_file(
         self, file_path: Path, module_name: str
@@ -194,22 +300,29 @@ class TestAnalyzer:
     def _is_integration_test(self, content: str) -> bool:
         """Check if test file is integration test.
 
+        Integration tests interact with external resources like:
+        - Databases
+        - Network/APIs
+        - File system
+        - External processes
+        - Time-dependent operations
+
         Args:
             content: File content
 
         Returns:
-            True if integration test
+            True if integration test (has external dependencies)
         """
-        # Has database import
+        # Check all integration pattern categories
+        for category, patterns in self.integration_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, content):
+                    return True
+
+        # Legacy patterns for backwards compatibility
         if self.db_import_pattern.search(content):
             return True
-
-        # Has database fixture
         if self.db_fixture_pattern.search(content):
-            return True
-
-        # Check for MongoClient or other DB clients
-        if "MongoClient" in content or "mongomock" in content:
             return True
 
         return False
@@ -221,21 +334,24 @@ class TestAnalyzer:
             content: File content
 
         Returns:
-            List of indicator strings
+            List of indicator strings (e.g., ["database", "network"])
         """
         indicators = []
 
-        if self.db_import_pattern.search(content):
-            indicators.append("from vf_db import db")
+        # Check each integration category
+        for category, patterns in self.integration_patterns.items():
+            for pattern in patterns:
+                if re.search(pattern, content):
+                    if category not in indicators:
+                        indicators.append(category)
+                    break  # Found one pattern in this category, move to next
 
-        if "MongoClient" in content:
-            indicators.append("MongoClient usage")
+        # Legacy patterns
+        if self.db_import_pattern.search(content) and "database" not in indicators:
+            indicators.append("database")
 
-        if "mongomock" in content:
-            indicators.append("mongomock usage")
-
-        if self.db_fixture_pattern.search(content):
-            indicators.append("database fixtures")
+        if self.db_fixture_pattern.search(content) and "database" not in indicators:
+            indicators.append("database")
 
         return indicators
 
