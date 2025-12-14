@@ -46,6 +46,8 @@ class HtmlReportGenerator:
         self.results = results
         self.templates = self._create_templates()
         self.env = Environment(loader=MemoryLoader(self.templates))
+        # Add custom filters
+        self.env.filters["highlight_module"] = self._highlight_module_filter
 
     def _create_templates(self) -> dict[str, str]:
         """Create all template strings."""
@@ -109,7 +111,7 @@ class HtmlReportGenerator:
             "tests": self._prepare_test_data(),
             "code_smells": self._prepare_code_smells_data(),
             "db_coupling": self._prepare_db_coupling_data(),
-            "technical_debt": self.results.get("technical_debt", {}),
+            "technical_debt": self._prepare_technical_debt_data(),
             "module_health": module_health_dict,
             "module_rankings": self._prepare_module_rankings(),
         }
@@ -181,6 +183,51 @@ class HtmlReportGenerator:
                 .replace(str(self._get_root_path()), "")
                 .lstrip("/")
             )
+
+    def _format_file_path_html(self, file_path: str) -> str:
+        """Format file path with module name highlighted for HTML display.
+
+        Args:
+            file_path: Absolute file path
+
+        Returns:
+            HTML-formatted path with module highlighted
+        """
+        rel_path = self._format_file_path(file_path)
+        parts = rel_path.split("/")
+
+        if len(parts) > 1:
+            # Highlight first part (module name) in bold
+            module = parts[0]
+            rest = "/".join(parts[1:])
+            return f"<strong>{module}</strong>/{rest}"
+        return rel_path
+
+    def _highlight_module_filter(self, file_path: str) -> str:
+        """Jinja2 filter to highlight module name in file paths.
+
+        Args:
+            file_path: File path string (relative or absolute)
+
+        Returns:
+            HTML string with module name in <strong> tags
+        """
+        # Ensure it's a relative path
+        if file_path.startswith("/"):
+            rel_path = self._format_file_path(file_path)
+        else:
+            rel_path = file_path
+
+        parts = rel_path.split("/")
+
+        if len(parts) > 1:
+            # Highlight first part (module name) in bold
+            module = parts[0]
+            rest = "/".join(parts[1:])
+            from jinja2 import Markup
+
+            return Markup(f"<strong>{module}</strong>/{rest}")
+        return rel_path
 
     def _prepare_test_data(self) -> dict[str, Any]:
         """Prepare test data for template rendering.
@@ -298,6 +345,8 @@ class HtmlReportGenerator:
         # Format file paths in violations
         violations = db_coupling_results.get("violations", [])
         formatted_violations = []
+        violations_by_file: dict[str, dict[str, Any]] = {}
+
         for violation in violations:
             if isinstance(violation, dict):
                 file_path = violation.get("file", "")
@@ -310,9 +359,32 @@ class HtmlReportGenerator:
                 formatted_violation["file"] = rel_path
                 formatted_violations.append(formatted_violation)
 
+                # Aggregate by file
+                if rel_path not in violations_by_file:
+                    violations_by_file[rel_path] = {
+                        "file": rel_path,
+                        "write_count": 0,
+                        "read_count": 0,
+                        "total_count": 0,
+                    }
+
+                op_type = violation.get("operation_type", "").lower()
+                if op_type == "write":
+                    violations_by_file[rel_path]["write_count"] += 1
+                elif op_type == "read":
+                    violations_by_file[rel_path]["read_count"] += 1
+                violations_by_file[rel_path]["total_count"] += 1
+
+        # Convert to list and sort by write violations first, then total count
+        violations_by_file_list = list(violations_by_file.values())
+        violations_by_file_list.sort(
+            key=lambda x: (-x["write_count"], -x["total_count"])
+        )
+
         return {
             **db_coupling_results,
             "violations": formatted_violations,
+            "violations_by_file": violations_by_file_list,
         }
 
     def _prepare_maintainability_data(self) -> dict[str, Any]:
@@ -376,16 +448,24 @@ class HtmlReportGenerator:
                     {
                         "file": rel_path,
                         "lines": file_data.get("sloc", 0),
+                        "comment_ratio": file_data.get("comment_ratio", 0),
                     }
                 )
 
         # Sort by lines of code (largest first)
         large_files.sort(key=lambda x: x["lines"], reverse=True)
 
+        # Calculate average file size
+        avg_file_size = 0
+        if large_files:
+            total_lines = sum(f["lines"] for f in large_files)
+            avg_file_size = total_lines / len(large_files)
+
         return {
             "total_lines": code_size_results.get("total_lines", 0),
             "total_functions": code_size_results.get("total_functions", 0),
             "total_classes": code_size_results.get("total_classes", 0),
+            "avg_file_size": avg_file_size,
             "large_files": large_files,
             **code_size_results,
         }
@@ -463,7 +543,7 @@ class HtmlReportGenerator:
         We analyze each module's health based on complexity, maintainability, test coverage, and code quality.</p>
     </div>
 
-    {% if module_health %}
+    {% if module_rankings %}
     <table>
         <thead>
             <tr>
@@ -476,11 +556,13 @@ class HtmlReportGenerator:
             </tr>
         </thead>
         <tbody>
-            {% for module_name, data in module_health.items() %}
+            {% for ranking in module_rankings %}
+            {% set module_name = ranking.module %}
+            {% set data = module_health.get(module_name, {}) if module_health else {} %}
             <tr>
                 <td><code>{{ module_name }}</code></td>
                 <td>
-                    {% set score = data.get('health_score', data.get('score', 0)) %}
+                    {% set score = ranking.score %}
                     <span class="badge {{ 'badge-success' if score >= 80 else 'badge-warning' if score >= 60 else 'badge-danger' }}">
                         {{ "%.1f"|format(score) }}/100
                     </span>
@@ -508,10 +590,12 @@ class HtmlReportGenerator:
     <div class="explanation-box">
         <h3>📚 What is database coupling?</h3>
         <p>Database coupling measures how closely your application logic is tied to database operations.
-        Direct database calls in business logic (write operations) create tight coupling and make code harder to test and maintain.</p>
+        Direct database calls in business logic (write operations) create tight coupling and make code harder to test and maintain.
+        We detect coupling with SQL databases (PostgreSQL, MySQL, SQLite, etc.) and NoSQL databases (MongoDB, DynamoDB, etc.).</p>
         <ul>
-            <li><strong>🔴 Write operations</strong> (INSERT, UPDATE, DELETE) - Critical violations</li>
-            <li><strong>🟡 Read operations</strong> (SELECT) - Warnings</li>
+            <li><strong>🔴 Write operations</strong> (INSERT, UPDATE, DELETE, UPSERT, SAVE) - Critical violations</li>
+            <li><strong>🟡 Read operations</strong> (SELECT, FIND, GET) - Warnings</li>
+            <li><strong>NoSQL</strong> - MongoDB, DynamoDB, and other NoSQL operations detected</li>
         </ul>
         <p><strong>⚡ Why it matters:</strong> Proper layering isolates database logic in repositories/DAOs,
         making code testable, maintainable, and easier to refactor.</p>
@@ -567,6 +651,44 @@ class HtmlReportGenerator:
             {% endfor %}
         </div>
     </details>
+
+    {% if db_coupling.get('violations_by_file') %}
+    <details>
+        <summary>📁 Violations by File (Worst First)</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Write Violations</th>
+                    <th>Read Operations</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file_violation in db_coupling.get('violations_by_file', []) %}
+                <tr>
+                    <td><code>{{ file_violation.get('file', '') }}</code></td>
+                    <td>
+                        {% if file_violation.get('write_count', 0) > 0 %}
+                        <span class="badge badge-danger">{{ file_violation.get('write_count', 0) }}</span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if file_violation.get('read_count', 0) > 0 %}
+                        <span class="badge badge-warning">{{ file_violation.get('read_count', 0) }}</span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ file_violation.get('total_count', 0) }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
     {% else %}
     <p>✅ No database coupling violations found!</p>
     {% endif %}
@@ -760,17 +882,15 @@ class HtmlReportGenerator:
                 <tr>
                     <th>File</th>
                     <th>Lines</th>
-                    <th>Functions</th>
-                    <th>Classes</th>
+                    <th>Comment Ratio</th>
                 </tr>
             </thead>
             <tbody>
-                {% for file in code_size.get('large_files', [])[:20] %}
+                {% for file in code_size.get('large_files', []) %}
                 <tr>
-                    <td><code>{{ file.get('file', '') }}</code></td>
+                    <td><code>{{ file.get('file', '') | highlight_module }}</code></td>
                     <td>{{ file.get('lines', 0) }}</td>
-                    <td>{{ file.get('functions', 0) }}</td>
-                    <td>{{ file.get('classes', 0) }}</td>
+                    <td>{{ "%.1f"|format(file.get('comment_ratio', 0) * 100) }}%</td>
                 </tr>
                 {% endfor %}
             </tbody>
