@@ -14,6 +14,9 @@ logger = logging.getLogger(__name__)
 class ASTParser:
     """Parses Python files into AST and extracts information."""
 
+    # Class-level set to track files with logged syntax errors (avoid duplicate warnings)
+    _logged_syntax_errors: set[str] = set()
+
     def __init__(self, file_path: Path, content: str | None = None):
         """Initialize AST parser.
 
@@ -45,11 +48,19 @@ class ASTParser:
             return self.tree
         except SyntaxError as e:
             self.parse_error = e
-            logger.warning(f"Syntax error in {self.file_path}: {e}")
+            # Only log each file's syntax error once to avoid spam
+            file_key = str(self.file_path)
+            if file_key not in ASTParser._logged_syntax_errors:
+                ASTParser._logged_syntax_errors.add(file_key)
+                logger.warning(f"Syntax error in {self.file_path}: {e}")
             return None
         except Exception as e:
             self.parse_error = e
-            logger.error(f"Failed to parse {self.file_path}: {e}")
+            # Only log each file's parse error once
+            file_key = str(self.file_path)
+            if file_key not in ASTParser._logged_syntax_errors:
+                ASTParser._logged_syntax_errors.add(file_key)
+                logger.error(f"Failed to parse {self.file_path}: {e}")
             return None
 
     def get_functions(self) -> list[tuple[str, ast.FunctionDef]]:

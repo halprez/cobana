@@ -133,11 +133,17 @@ class ModuleHealthCalculator:
             .get("avg_mi", 50.0)
         )  # Already 0-100 scale
 
-        testability_score = (
-            test_results.get("by_module", {})
-            .get(module_name, {})
-            .get("testability_score", 50.0)
-        )  # Already 0-100 scale
+        # Use unit test percentage as testability score
+        # Higher % of unit tests = better testability
+        test_module_data = test_results.get("by_module", {}).get(module_name, {})
+        unit_tests = test_module_data.get("unit_tests", 0)
+        integration_tests = test_module_data.get("integration_tests", 0)
+        total_tests = unit_tests + integration_tests
+
+        if total_tests > 0:
+            testability_score = (unit_tests / total_tests) * 100
+        else:
+            testability_score = 0.0  # No tests = lowest score
 
         smells_score = self._normalize_smells(
             code_smells_results.get("by_module", {}).get(module_name, {}),
@@ -183,7 +189,7 @@ class ModuleHealthCalculator:
             "file_count": code_size_data.get("file_count", 0),
             "avg_complexity": complexity_data.get("avg_complexity", 0),
             "avg_maintainability": maintainability_data.get("avg_mi", 0),
-            "test_coverage": test_data.get("testability_score", 0),
+            "test_coverage": testability_score,  # Unit test percentage
         }
 
     def _normalize_coupling(self, module_stats: dict[str, Any]) -> float:

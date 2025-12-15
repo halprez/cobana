@@ -45,6 +45,9 @@ class TestAnalyzer:
                     "integration_tests": 0,
                     "testability_score": 0.0,
                     "mixed_functions": 0,
+                    "total_functions": 0,
+                    "functions_with_tests": 0,
+                    "function_coverage": 0.0,
                 }
             ),
             "testability": {
@@ -57,6 +60,11 @@ class TestAnalyzer:
             },
             "test_details": [],
         }
+
+        # Track test function names per module for coverage calculation
+        self._test_functions_by_module: dict[str, set[str]] = defaultdict(set)
+        # Track production function names per module
+        self._production_functions_by_module: dict[str, set[str]] = defaultdict(set)
 
         # Patterns for test categorization
         self.db_import_pattern = re.compile(r"from\s+vf_db\s+import\s+db")
@@ -275,6 +283,10 @@ class TestAnalyzer:
             name for name, _ in functions if name.startswith("test_")
         ]
 
+        # Track test function names for coverage calculation
+        for test_func in test_functions:
+            self._test_functions_by_module[inferred_module].add(test_func)
+
         # Determine if integration or unit test
         is_integration = self._is_integration_test(content)
 
@@ -480,6 +492,25 @@ class TestAnalyzer:
 
         return False
 
+    def track_production_functions(
+        self, file_path: Path, module_name: str, content: str
+    ) -> None:
+        """Track production function names for test coverage calculation.
+
+        Args:
+            file_path: Path to file
+            module_name: Module name
+            content: File content
+        """
+        parser = ASTParser(file_path, content)
+        functions = parser.get_functions()
+
+        # Count public functions (skip private/magic methods)
+        for func_name, _ in functions:
+            if not func_name.startswith("_"):
+                self._production_functions_by_module[module_name].add(func_name)
+                self.results["by_module"][module_name]["total_functions"] += 1
+
     def finalize_results(self) -> dict[str, Any]:
         """Finalize and return analysis results.
 
@@ -524,6 +555,26 @@ class TestAnalyzer:
                 ) * 100
             else:
                 module_stats["testability_score"] = 0.0
+
+        # Calculate function coverage (functions with corresponding tests)
+        for module_name in self.results["by_module"].keys():
+            production_funcs = self._production_functions_by_module.get(module_name, set())
+            test_funcs = self._test_functions_by_module.get(module_name, set())
+
+            if production_funcs:
+                # Check which production functions have corresponding test_* functions
+                tested_funcs = set()
+                for prod_func in production_funcs:
+                    test_name = f"test_{prod_func}"
+                    if test_name in test_funcs:
+                        tested_funcs.add(prod_func)
+
+                self.results["by_module"][module_name]["functions_with_tests"] = len(tested_funcs)
+                self.results["by_module"][module_name]["function_coverage"] = (
+                    len(tested_funcs) / len(production_funcs)
+                ) * 100
+            else:
+                self.results["by_module"][module_name]["function_coverage"] = 0.0
 
         # Convert by_module from defaultdict to regular dict
         self.results["by_module"] = dict(self.results["by_module"])

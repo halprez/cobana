@@ -6,6 +6,7 @@ This class coordinates all analyzers and produces comprehensive analysis results
 from pathlib import Path
 from typing import Any
 import logging
+from logging.handlers import RotatingFileHandler
 
 from cobana.utils.config_utils import load_config
 from cobana.utils.file_utils import FileScanner, read_file_safely
@@ -43,6 +44,7 @@ class CodebaseAnalyzer:
         root_path: Path | str,
         config_path: Path | str | None = None,
         verbose: bool = False,
+        log_file: Path | str = "cobana.log",
     ):
         """Initialize codebase analyzer.
 
@@ -50,16 +52,14 @@ class CodebaseAnalyzer:
             root_path: Root directory of codebase to analyze
             config_path: Optional path to configuration file
             verbose: Enable verbose logging
+            log_file: Path to log file (default: cobana.log)
         """
         self.root_path = Path(root_path).resolve()
         self.verbose = verbose
         self.config = load_config(config_path)
 
-        # Setup logging
-        if verbose:
-            logging.basicConfig(level=logging.INFO)
-        else:
-            logging.basicConfig(level=logging.WARNING)
+        # Setup logging to file with rotation
+        self._setup_logging(log_file, verbose)
 
         # Module detection
         self.module_detector = ModuleDetector(self.root_path, self.config)
@@ -96,13 +96,62 @@ class CodebaseAnalyzer:
         self.tech_debt = TechnicalDebtCalculator(self.config)
         self.module_health = ModuleHealthCalculator(self.config)
 
+    def _setup_logging(self, log_file: Path | str, verbose: bool) -> None:
+        """Setup rotating file logging.
+
+        Args:
+            log_file: Path to log file
+            verbose: Enable verbose logging
+        """
+        log_path = Path(log_file)
+
+        # Create a rotating file handler
+        # Max 10MB per file, keep 5 backup files
+        file_handler = RotatingFileHandler(
+            log_path,
+            maxBytes=10 * 1024 * 1024,  # 10MB
+            backupCount=5,
+            encoding='utf-8'
+        )
+
+        # Set logging level for file
+        if verbose:
+            file_handler.setLevel(logging.DEBUG)
+        else:
+            file_handler.setLevel(logging.INFO)
+
+        # Create formatter
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        file_handler.setFormatter(formatter)
+
+        # Get root logger and configure it
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.DEBUG)  # Capture all levels
+
+        # Remove any existing handlers
+        root_logger.handlers = []
+
+        # Add file handler
+        root_logger.addHandler(file_handler)
+
+        # Add console handler for errors only
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.ERROR)
+        console_handler.setFormatter(formatter)
+        root_logger.addHandler(console_handler)
+
+        logger.info(f"Logging to {log_path.resolve()}")
+
     def analyze(self) -> dict[str, Any]:
         """Run complete codebase analysis.
 
         Returns:
             Complete analysis results dictionary
         """
-        logger.info(f"Starting analysis of {self.root_path}")
+        print(f"🔍 Starting analysis of {self.root_path}")
 
         # Refresh scanner with current config (in case config was modified after init)
         self.scanner = FileScanner(
@@ -114,32 +163,46 @@ class CodebaseAnalyzer:
 
         # Step 1: Detect modules
         self.modules = self.module_detector.detect_modules()
-        logger.info(f"Detected {len(self.modules)} modules")
+        module_names = [m.name if hasattr(m, 'name') else str(m) for m in self.modules]
+        print(f"📦 Detected {len(self.modules)} modules: {', '.join(module_names)}")
 
         # Initialize module coupling analyzer now that we have modules
         self.module_coupling = ModuleCouplingAnalyzer(self.config, self.modules)
 
-        # Step 2: Scan and analyze files
+        # Step 2: Collect all files first to get total count
+        print("📂 Scanning Python files...")
+        all_files = list(self.scanner.scan_python_files())
+        total_files = len(all_files)
+        print(f"📊 Found {total_files} Python files to analyze")
+
+        # Step 3: Analyze files with progress
         files_analyzed = 0
-        for file_path in self.scanner.scan_python_files():
+        for file_path in all_files:
             module_name = self.module_detector.get_module_for_file(file_path)
 
             # Run analyzers on this file
             self._analyze_file(file_path, module_name)
             files_analyzed += 1
 
-        logger.info(f"Analyzed {files_analyzed} files")
+            # Show progress every 10 files or at the end
+            if files_analyzed % 10 == 0 or files_analyzed == total_files:
+                print(f"\r⚙️  Processing: {files_analyzed}/{total_files} files ({files_analyzed*100//total_files}%)", end="", flush=True)
 
-        # Step 3: Finalize all analyzers
+        print()  # New line after progress
+        print(f"✅ Analyzed {files_analyzed} files")
+
+        # Step 4: Finalize all analyzers
+        print("🔄 Finalizing analysis results...")
         self._finalize_analyzers()
 
-        # Step 4: Calculate debt and health scores
+        # Step 5: Calculate debt and health scores
+        print("📈 Calculating technical debt and health scores...")
         self._calculate_composite_metrics()
 
-        # Step 5: Build final results
+        # Step 6: Build final results
         self._build_results()
 
-        logger.info("Analysis complete")
+        print("✨ Analysis complete!")
         return self.results
 
     def _analyze_file(self, file_path: Path, module_name: str) -> None:
@@ -172,6 +235,10 @@ class CodebaseAnalyzer:
             self.test_analyzer.analyze_testability_content(
                 content, file_path, module_name
             )
+            # Track production functions for test coverage calculation
+            self.test_analyzer.track_production_functions(
+                file_path, module_name, content
+            )
 
         # Run on all files (test and non-test)
         # All analyzers now use pre-read content instead of reading again
@@ -188,8 +255,6 @@ class CodebaseAnalyzer:
 
     def _finalize_analyzers(self) -> None:
         """Finalize all analyzers."""
-        logger.info("Finalizing analyzer results...")
-
         self.db_coupling_results = self.db_coupling.finalize_results()
         self.complexity_results = self.complexity.finalize_results()
         self.maintainability_results = self.maintainability.finalize_results()
@@ -201,8 +266,6 @@ class CodebaseAnalyzer:
 
     def _calculate_composite_metrics(self) -> None:
         """Calculate technical debt and module health scores."""
-        logger.info("Calculating technical debt and health scores...")
-
         # Calculate technical debt
         self.tech_debt_results = self.tech_debt.calculate(
             self.complexity_results,

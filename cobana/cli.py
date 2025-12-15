@@ -109,6 +109,14 @@ Examples:
     )
 
     parser.add_argument(
+        '--log-file',
+        type=str,
+        metavar='FILE',
+        default='cobana.log',
+        help='Log file path with rotation (default: cobana.log)'
+    )
+
+    parser.add_argument(
         '-v', '--verbose',
         action='store_true',
         help='Show progress during analysis'
@@ -145,12 +153,14 @@ def main() -> int:
     try:
         # Initialize analyzer
         print(f"🔍 Analyzing codebase: {codebase_path}")
+        print(f"📝 Logging to: {Path(args.log_file).resolve()}")
         print()
 
         analyzer = CodebaseAnalyzer(
             root_path=codebase_path,
             config_path=args.config,
-            verbose=args.verbose
+            verbose=args.verbose,
+            log_file=args.log_file
         )
 
         # Override config with CLI arguments if provided

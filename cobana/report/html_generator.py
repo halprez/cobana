@@ -730,7 +730,7 @@ class HtmlReportGenerator:
                 <th>Files</th>
                 <th>Avg Complexity</th>
                 <th>Maintainability</th>
-                <th>Test Coverage</th>
+                <th>Unit Test %</th>
             </tr>
         </thead>
         <tbody>
@@ -748,7 +748,11 @@ class HtmlReportGenerator:
                 <td>{{ data.get('file_count', 0) }}</td>
                 <td>{{ "%.1f"|format(data.get('avg_complexity', 0)) }}</td>
                 <td>{{ "%.1f"|format(data.get('avg_maintainability', 0)) }}</td>
-                <td>{{ "%.1f"|format(data.get('test_coverage', 0)) }}%</td>
+                <td>
+                    <span class="badge {{ 'badge-success' if data.get('test_coverage', 0) >= 70 else 'badge-warning' if data.get('test_coverage', 0) >= 50 else 'badge-danger' }}">
+                        {{ "%.0f"|format(data.get('test_coverage', 0)) }}%
+                    </span>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -1161,48 +1165,158 @@ class HtmlReportGenerator:
         """Create tests section template."""
         return """
 <section id="tests">
-    <h2>🧪 Test Coverage</h2>
+    <h2>🧪 Test Analysis</h2>
 
     <div class="explanation-box">
         <h3>📚 What is test coverage?</h3>
-        <p>Test coverage measures the percentage of code that is executed by automated tests.
-        We detect test files and estimate coverage based on test-to-code ratio.</p>
-        <p><strong>⚡ Why it matters:</strong> Higher test coverage correlates with fewer bugs
-        and easier refactoring. Aim for >80% coverage on critical business logic.</p>
+        <p>Test coverage measures how much of your code is covered by automated tests.
+        We analyze test files, categorize them (unit vs integration), and calculate function coverage.</p>
+        <ul>
+            <li><strong>Unit Tests:</strong> Pure, isolated tests with no external dependencies</li>
+            <li><strong>Integration Tests:</strong> Tests that interact with databases, networks, filesystem, etc.</li>
+            <li><strong>Function Coverage:</strong> Percentage of functions that have corresponding test_* functions</li>
+        </ul>
+        <p><strong>⚡ Why it matters:</strong> Higher test coverage with more unit tests correlates with fewer bugs
+        and easier refactoring. Aim for >80% coverage with >70% unit tests.</p>
     </div>
 
     <div class="metric-cards">
+        <div class="metric-card">
+            <h4>Total Tests</h4>
+            <div class="metric-value">{{ tests.total_test_functions or 0 }}</div>
+            <div class="metric-label">{{ tests.test_file_count or 0 }} files</div>
+        </div>
+        <div class="metric-card {{ 'success' if tests.test_ratio.unit_percentage >= 70 else 'warning' if tests.test_ratio.unit_percentage >= 50 else 'danger' }}">
+            <h4>Unit Tests</h4>
+            <div class="metric-value">{{ tests.unit_test_functions or 0 }}</div>
+            <div class="metric-label">{{ "%.1f"|format(tests.test_ratio.unit_percentage or 0) }}% of total</div>
+        </div>
+        <div class="metric-card {{ 'warning' if tests.integration_test_functions > tests.unit_test_functions else 'success' }}">
+            <h4>Integration Tests</h4>
+            <div class="metric-value">{{ tests.integration_test_functions or 0 }}</div>
+            <div class="metric-label">{{ "%.1f"|format(tests.test_ratio.integration_percentage or 0) }}% of total</div>
+        </div>
         <div class="metric-card {{ 'success' if tests.estimated_coverage >= 80 else 'warning' if tests.estimated_coverage >= 60 else 'danger' }}">
-            <h4>Estimated Coverage</h4>
+            <h4>Line Coverage (Est.)</h4>
             <div class="metric-value">{{ "%.1f"|format(tests.estimated_coverage or 0) }}%</div>
-            <div class="metric-label">Based on test/code ratio</div>
-        </div>
-        <div class="metric-card">
-            <h4>Test Files</h4>
-            <div class="metric-value">{{ tests.test_file_count or 0 }}</div>
-            <div class="metric-label">Total test files</div>
-        </div>
-        <div class="metric-card">
-            <h4>Test Lines</h4>
-            <div class="metric-value">{{ tests.total_test_lines or 0 }}</div>
-            <div class="metric-label">Lines of test code</div>
+            <div class="metric-label">Based on test/code lines</div>
         </div>
     </div>
 
-    {% if tests.test_files %}
+    {% if tests.by_module %}
+    <details open>
+        <summary>📊 Test Analysis by Module</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>Module</th>
+                    <th>Test Files</th>
+                    <th>Unit Tests</th>
+                    <th>Integration Tests</th>
+                    <th>Total Tests</th>
+                    <th>Unit %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for module_name, module_data in tests.by_module.items() %}
+                {% set total_tests = module_data.get('unit_tests', 0) + module_data.get('integration_tests', 0) %}
+                {% set unit_pct = (module_data.get('unit_tests', 0) / total_tests * 100) if total_tests > 0 else 0 %}
+                <tr>
+                    <td><code>{{ module_name }}</code></td>
+                    <td>{{ module_data.get('test_files', 0) }}</td>
+                    <td>{{ module_data.get('unit_tests', 0) }}</td>
+                    <td>{{ module_data.get('integration_tests', 0) }}</td>
+                    <td><strong>{{ total_tests }}</strong></td>
+                    <td>
+                        <span class="badge {{ 'badge-success' if unit_pct >= 70 else 'badge-warning' if unit_pct >= 50 else 'badge-danger' }}">
+                            {{ "%.0f"|format(unit_pct) }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+
+    {% if tests.testability %}
+    <h3 style="margin-top: 40px;">Code Testability Analysis</h3>
+    <div class="explanation-box">
+        <p>Testability measures how easy your code is to test. Functions that mix business logic with direct database access are hard to test in isolation.</p>
+        <p><strong>Best Practice:</strong> Separate business logic from data access using repository/DAO patterns.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card {{ 'success' if tests.testability.testability_score >= 80 else 'warning' if tests.testability.testability_score >= 60 else 'danger' }}">
+            <h4>Testability Score</h4>
+            <div class="metric-value">{{ "%.1f"|format(tests.testability.testability_score or 0) }}%</div>
+            <div class="metric-label">Business logic functions that are testable</div>
+        </div>
+        <div class="metric-card">
+            <h4>Business Logic Functions</h4>
+            <div class="metric-value">{{ tests.testability.functions_with_business_logic or 0 }}</div>
+            <div class="metric-label">Total with control flow/operations</div>
+        </div>
+        <div class="metric-card {{ 'danger' if tests.testability.functions_mixing_both > 0 else 'success' }}">
+            <h4>Untestable Functions</h4>
+            <div class="metric-value">{{ tests.testability.functions_mixing_both or 0 }}</div>
+            <div class="metric-label">Mixing business logic + DB access</div>
+        </div>
+    </div>
+
+    {% if tests.testability.untestable_functions %}
     <details>
+        <summary>⚠️ Untestable Functions ({{ tests.testability.untestable_functions|length }})</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>Function</th>
+                    <th>Module</th>
+                    <th>File</th>
+                    <th>Line</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for func in tests.testability.untestable_functions %}
+                <tr data-module="{{ func.get('module', '') }}">
+                    <td><code>{{ func.function }}</code></td>
+                    <td><code>{{ func.module }}</code></td>
+                    <td><code>{{ func.file | highlight_module }}</code></td>
+                    <td>{{ func.line }}</td>
+                    <td>{{ func.reason.replace('_', ' ').title() }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+    {% endif %}
+
+    {% if tests.test_files %}
+    <details style="margin-top: 30px;">
         <summary>📝 Test Files ({{ tests.test_file_count or 0 }})</summary>
         <table>
             <thead>
                 <tr>
                     <th>Test File</th>
+                    <th>Module</th>
+                    <th>Type</th>
+                    <th>Test Count</th>
                     <th>Lines</th>
                 </tr>
             </thead>
             <tbody>
-                {% for test_file in tests.test_files %}
+                {% for test_file in tests.test_details %}
                 <tr data-module="{{ test_file.get('module', '') }}">
                     <td><code>{{ test_file.file | highlight_module }}</code></td>
+                    <td><code>{{ test_file.module }}</code></td>
+                    <td>
+                        <span class="badge {{ 'badge-success' if test_file.type == 'unit' else 'badge-warning' }}">
+                            {{ test_file.type }}
+                        </span>
+                    </td>
+                    <td>{{ test_file.test_count }}</td>
                     <td>{{ test_file.lines }}</td>
                 </tr>
                 {% endfor %}
