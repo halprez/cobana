@@ -20,6 +20,7 @@ class FileScanner:
         exclude_patterns: list[str] | None = None,
         verbose: bool = False,
         max_depth: int | None = None,
+        tests_dir: Path | None = None,
     ):
         """Initialize file scanner.
 
@@ -29,11 +30,14 @@ class FileScanner:
             verbose: Enable verbose logging
             max_depth: Maximum folder depth to scan (None = unlimited)
                       Depth 1 = only files in root, 2 = root + 1 level, etc.
+            tests_dir: Optional tests directory. Files under this directory
+                      will not be excluded even if they match exclude patterns.
         """
         self.root_path = Path(root_path).resolve()
         self.exclude_patterns = exclude_patterns or []
         self.verbose = verbose
         self.max_depth = max_depth
+        self.tests_dir = tests_dir.resolve() if tests_dir else None
         self.files_scanned = 0
         self.files_skipped = 0
         self.skipped_files: list[tuple[Path, str]] = []  # (path, reason)
@@ -75,6 +79,9 @@ class FileScanner:
     def _should_include(self, file_path: Path) -> bool:
         """Check if file should be included in analysis.
 
+        Files under tests_dir are always included, even if they match exclude patterns.
+        This ensures test files are analyzed for test metrics.
+
         Args:
             file_path: Path to check
 
@@ -89,6 +96,17 @@ class FileScanner:
 
         rel_path_str = str(rel_path)
 
+        # Check if file is under tests directory
+        # If so, include it regardless of exclude patterns
+        is_under_tests_dir = False
+        if self.tests_dir:
+            try:
+                file_path.resolve().relative_to(self.tests_dir)
+                is_under_tests_dir = True
+            except ValueError:
+                # File is not under tests_dir
+                pass
+
         # Check depth limit
         if self.max_depth is not None:
             # Count folder depth from root
@@ -96,6 +114,10 @@ class FileScanner:
             depth = len(rel_path.parent.parts) + 1
             if depth > self.max_depth:
                 return False
+
+        # If file is under tests_dir, include it (skip exclude pattern checks)
+        if is_under_tests_dir:
+            return True
 
         # Check against exclude patterns
         for pattern in self.exclude_patterns:

@@ -76,6 +76,7 @@ class CodebaseAnalyzer:
             self.config.get("exclude_patterns", []),
             verbose,
             self.config.get("max_depth"),
+            self.tests_dir,
         )
 
         # Initialize all analyzers
@@ -210,6 +211,7 @@ class CodebaseAnalyzer:
             self.config.get("exclude_patterns", []),
             self.verbose,
             self.config.get("max_depth"),
+            self.tests_dir,
         )
 
         # Step 1: Detect modules
