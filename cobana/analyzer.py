@@ -9,7 +9,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from cobana.utils.config_utils import load_config
-from cobana.utils.file_utils import FileScanner, read_file_safely
+from cobana.utils.file_utils import FileScanner, read_file_safely, find_tests_directory
 from cobana.utils.module_detector import ModuleDetector
 
 # Import all analyzers
@@ -45,6 +45,7 @@ class CodebaseAnalyzer:
         config_path: Path | str | None = None,
         verbose: bool = False,
         log_file: Path | str = "cobana.log",
+        tests_dir: Path | str | None = None,
     ):
         """Initialize codebase analyzer.
 
@@ -53,6 +54,7 @@ class CodebaseAnalyzer:
             config_path: Optional path to configuration file
             verbose: Enable verbose logging
             log_file: Path to log file (default: cobana.log)
+            tests_dir: Optional path to tests directory (auto-detects if not provided)
         """
         self.root_path = Path(root_path).resolve()
         self.verbose = verbose
@@ -60,6 +62,9 @@ class CodebaseAnalyzer:
 
         # Setup logging to file with rotation
         self._setup_logging(log_file, verbose)
+
+        # Resolve tests directory
+        self.tests_dir = self._resolve_tests_dir(tests_dir)
 
         # Module detection
         self.module_detector = ModuleDetector(self.root_path, self.config)
@@ -85,7 +90,7 @@ class CodebaseAnalyzer:
         self.complexity = ComplexityAnalyzer(self.config)
         self.maintainability = MaintainabilityAnalyzer(self.config)
         self.code_size = CodeSizeAnalyzer(self.config)
-        self.test_analyzer = TestAnalyzer(self.config)
+        self.test_analyzer = TestAnalyzer(self.config, self.tests_dir)
         self.class_metrics = ClassMetricsAnalyzer(self.config)
         self.code_smells = CodeSmellsAnalyzer(self.config)
 
@@ -95,6 +100,42 @@ class CodebaseAnalyzer:
         # Calculators (run after all analysis)
         self.tech_debt = TechnicalDebtCalculator(self.config)
         self.module_health = ModuleHealthCalculator(self.config)
+
+    def _resolve_tests_dir(self, tests_dir: Path | str | None) -> Path | None:
+        """Resolve tests directory path.
+
+        Args:
+            tests_dir: Optional path to tests directory
+
+        Returns:
+            Resolved Path to tests directory, or None if not found
+        """
+        if tests_dir:
+            # User provided a tests directory
+            test_path = Path(tests_dir)
+
+            # If relative, make it relative to root_path
+            if not test_path.is_absolute():
+                test_path = self.root_path / test_path
+
+            test_path = test_path.resolve()
+
+            if test_path.exists() and test_path.is_dir():
+                logger.info(f"Using specified tests directory: {test_path}")
+                return test_path
+            else:
+                logger.warning(
+                    f"Specified tests directory does not exist: {test_path}. "
+                    "Will attempt auto-detection."
+                )
+
+        # Auto-detect tests directory
+        auto_detected = find_tests_directory(self.root_path)
+        if auto_detected:
+            return auto_detected
+
+        logger.info("No tests directory found. Will scan all files for tests.")
+        return None
 
     def _setup_logging(self, log_file: Path | str, verbose: bool) -> None:
         """Setup rotating file logging.
@@ -152,6 +193,16 @@ class CodebaseAnalyzer:
             Complete analysis results dictionary
         """
         print(f"🔍 Starting analysis of {self.root_path}")
+
+        # Print tests directory info
+        if self.tests_dir:
+            try:
+                rel_tests_dir = self.tests_dir.relative_to(self.root_path)
+                print(f"🧪 Tests directory: {rel_tests_dir}")
+            except ValueError:
+                print(f"🧪 Tests directory: {self.tests_dir}")
+        else:
+            print("🧪 Tests directory: Not found (will use filename heuristics)")
 
         # Refresh scanner with current config (in case config was modified after init)
         self.scanner = FileScanner(

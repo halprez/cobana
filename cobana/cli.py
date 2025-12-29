@@ -34,6 +34,8 @@ Examples:
   cobana /path/to/backend --service-name claims --markdown summary.md --verbose
   cobana /path/to/backend --html report.html --json data.json --markdown summary.md
   cobana /path/to/backend --output report.html --max-items 50
+  cobana /path/to/backend --tests-dir tests --output report.html
+  cobana /path/to/backend --tests-dir /absolute/path/to/tests --verbose
         """
     )
 
@@ -101,6 +103,15 @@ Examples:
     )
 
     parser.add_argument(
+        '--tests-dir',
+        type=str,
+        metavar='PATH',
+        help='Path to tests directory (default: auto-detect). '
+             'Can be absolute or relative to codebase root. '
+             'If not specified, will search for common test directory names (tests/, test/, etc.)'
+    )
+
+    parser.add_argument(
         '--max-items',
         type=int,
         metavar='N',
@@ -160,7 +171,8 @@ def main() -> int:
             root_path=codebase_path,
             config_path=args.config,
             verbose=args.verbose,
-            log_file=args.log_file
+            log_file=args.log_file,
+            tests_dir=args.tests_dir
         )
 
         # Override config with CLI arguments if provided
@@ -268,6 +280,17 @@ def print_summary(results: dict) -> None:
     print(f"  Unit Tests: {summary.get('unit_percentage', 0):.1f}%")
     print(f"  Integration Tests: {summary.get('integration_percentage', 0):.1f}%")
     print(f"  Testability Score: {summary.get('testability_score', 0):.1f}%")
+    print()
+
+    # Edge Case Testing
+    edge_pct = summary.get('edge_case_percentage', 0)
+    edge_status = "🟢" if edge_pct >= 30 else "🟡" if edge_pct >= 15 else "🔴"
+    print("Edge Case Testing:")
+    print(f"  Edge Case Coverage: {edge_pct:.1f}% {edge_status}")
+    print(f"  Edge Case Tests: {summary.get('total_edge_case_tests', 0)}")
+    print(f"  Happy Path Tests: {summary.get('total_happy_path_tests', 0)}")
+    if edge_pct < 30:
+        print(f"  ⚠️  Warning: Low edge case coverage (recommended: ≥30%)")
     print()
 
     # Top Module

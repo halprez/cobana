@@ -18,13 +18,16 @@ logger = logging.getLogger(__name__)
 class TestAnalyzer:
     """Analyzes test coverage and testability in Python codebases."""
 
-    def __init__(self, config: dict[str, Any]):
+    def __init__(self, config: dict[str, Any], tests_dir: Path | None = None):
         """Initialize analyzer.
 
         Args:
             config: Configuration dictionary
+            tests_dir: Optional path to tests directory. If provided, files under
+                      this directory will be treated as test files.
         """
         self.config = config
+        self.tests_dir = tests_dir
 
         # Results storage
         self.results: dict[str, Any] = {
@@ -38,11 +41,26 @@ class TestAnalyzer:
                 "unit_percentage": 0.0,
                 "integration_percentage": 0.0,
             },
+            "edge_case_analysis": {
+                "total_edge_case_tests": 0,
+                "total_happy_path_tests": 0,
+                "edge_case_percentage": 0.0,
+                "exception_handling_tests": 0,
+                "boundary_value_tests": 0,
+                "negative_assertion_tests": 0,
+                "error_condition_tests": 0,
+                "regression_tests": 0,
+                "parametrized_tests": 0,
+                "edge_case_details": [],
+            },
             "by_module": defaultdict(
                 lambda: {
                     "test_files": 0,
                     "unit_tests": 0,
                     "integration_tests": 0,
+                    "edge_case_tests": 0,
+                    "happy_path_tests": 0,
+                    "edge_case_percentage": 0.0,
                     "testability_score": 0.0,
                     "mixed_functions": 0,
                     "total_functions": 0,
@@ -209,9 +227,10 @@ class TestAnalyzer:
         """Check if file is a test file.
 
         Uses multiple heuristics:
-        1. Filename patterns (test_*.py or *_test.py)
-        2. Located in test directories (test/, tests/, testing/)
-        3. Contains test classes or functions (checked via content)
+        1. If tests_dir is set, check if file is under that directory
+        2. Filename patterns (test_*.py or *_test.py)
+        3. Located in test directories (test/, tests/, testing/)
+        4. Contains test classes or functions (checked via content)
 
         Args:
             file_path: Path to file
@@ -219,6 +238,18 @@ class TestAnalyzer:
         Returns:
             True if file is a test file
         """
+        # If tests_dir is set, check if file is under it
+        if self.tests_dir:
+            try:
+                # Check if file is relative to tests_dir
+                file_path.resolve().relative_to(self.tests_dir.resolve())
+                # If no exception, file is under tests_dir
+                logger.debug(f"File {file_path} is under tests_dir {self.tests_dir}")
+                return True
+            except ValueError:
+                # File is not under tests_dir, continue with other checks
+                pass
+
         name = file_path.name
         path_str = str(file_path)
 
@@ -275,17 +306,66 @@ class TestAnalyzer:
             file_path, module_name, content
         )
 
-        # Count test functions
+        # Count test functions and analyze edge cases
         parser = ASTParser(file_path, content)
         functions = parser.get_functions()
 
         test_functions = [
-            name for name, _ in functions if name.startswith("test_")
+            (name, node) for name, node in functions if name.startswith("test_")
         ]
 
         # Track test function names for coverage calculation
-        for test_func in test_functions:
+        for test_func, _ in test_functions:
             self._test_functions_by_module[inferred_module].add(test_func)
+
+        # Analyze edge case patterns in each test function
+        edge_case_count = 0
+        happy_path_count = 0
+        edge_case_tests = []
+
+        for func_name, func_node in test_functions:
+            edge_indicators = self._detect_edge_case_patterns(
+                func_name, func_node, content
+            )
+
+            if edge_indicators["is_edge_case"]:
+                edge_case_count += 1
+                edge_case_tests.append(
+                    {
+                        "function": func_name,
+                        "file": str(file_path),
+                        "module": inferred_module,
+                        "line": func_node.lineno,
+                        "patterns": edge_indicators["patterns"],
+                        "boundary_values": edge_indicators["boundary_values"],
+                        "is_regression": edge_indicators["is_regression"],
+                    }
+                )
+
+                # Update specific edge case counters
+                if edge_indicators["exception_handling"]:
+                    self.results["edge_case_analysis"]["exception_handling_tests"] += 1
+                if edge_indicators["boundary_values"]:
+                    self.results["edge_case_analysis"]["boundary_value_tests"] += 1
+                if edge_indicators["negative_assertions"]:
+                    self.results["edge_case_analysis"]["negative_assertion_tests"] += 1
+                if edge_indicators["error_condition"]:
+                    self.results["edge_case_analysis"]["error_condition_tests"] += 1
+                if edge_indicators["is_regression"]:
+                    self.results["edge_case_analysis"]["regression_tests"] += 1
+                if edge_indicators["is_parametrized"]:
+                    self.results["edge_case_analysis"]["parametrized_tests"] += 1
+            else:
+                happy_path_count += 1
+
+        # Update module-level edge case stats
+        self.results["by_module"][inferred_module]["edge_case_tests"] += edge_case_count
+        self.results["by_module"][inferred_module]["happy_path_tests"] += happy_path_count
+
+        # Update overall edge case stats
+        self.results["edge_case_analysis"]["total_edge_case_tests"] += edge_case_count
+        self.results["edge_case_analysis"]["total_happy_path_tests"] += happy_path_count
+        self.results["edge_case_analysis"]["edge_case_details"].extend(edge_case_tests)
 
         # Determine if integration or unit test
         is_integration = self._is_integration_test(content)
@@ -298,6 +378,8 @@ class TestAnalyzer:
             "module": inferred_module,  # Use inferred module for better accuracy
             "type": test_type,
             "test_count": len(test_functions),
+            "edge_case_tests": edge_case_count,
+            "happy_path_tests": happy_path_count,
             "lines": test_lines,
             "indicators": self._get_integration_indicators(content)
             if is_integration
@@ -492,6 +574,156 @@ class TestAnalyzer:
 
         return False
 
+    def _detect_edge_case_patterns(
+        self, func_name: str, func_node: Any, content: str
+    ) -> dict[str, Any]:
+        """Detect edge case testing patterns in a test function.
+
+        Edge case tests are critical for production reliability but often overlooked.
+        This method identifies various patterns that indicate edge case coverage:
+
+        1. Exception handling: Tests that verify error conditions
+        2. Boundary values: Tests with 0, None, empty collections, max values
+        3. Negative assertions: Tests checking for false/None/not-equal conditions
+        4. Error conditions: Tests for validation failures
+        5. Regression tests: Tests for previously fixed bugs
+        6. Parametrized tests: Tests covering multiple scenarios
+
+        Args:
+            func_name: Name of test function
+            func_node: AST FunctionDef node
+            content: Full file content as string
+
+        Returns:
+            Dictionary with edge case indicators and classification
+        """
+        import ast
+
+        indicators = {
+            "is_edge_case": False,
+            "is_regression": False,
+            "patterns": [],
+            "boundary_values": [],
+            "exception_handling": False,
+            "negative_assertions": False,
+            "error_condition": False,
+            "is_parametrized": False,
+        }
+
+        # Get function source
+        func_lines = content.split("\n")[
+            func_node.lineno - 1 : func_node.end_lineno
+        ]
+        func_source = "\n".join(func_lines)
+
+        # 1. Detect exception handling tests
+        exception_patterns = [
+            r"pytest\.raises",
+            r"assertRaises",
+            r"with\s+raises",
+            r"except\s+\w+Error",
+            r"@pytest\.mark\.xfail",
+        ]
+        for pattern in exception_patterns:
+            if re.search(pattern, func_source):
+                indicators["exception_handling"] = True
+                indicators["patterns"].append("exception_handling")
+                indicators["is_edge_case"] = True
+                break
+
+        # 2. Detect boundary value tests
+        # Look for boundary values in assertions or function calls
+        # More specific patterns to avoid false positives
+        boundary_patterns = [
+            (r"(?:==|!=|assert|,)\s*0\b", "zero"),
+            (r"(?:==|!=|assert|,)\s*-1\b", "negative_one"),
+            (r"(?:==|!=|assert|is|,)\s*None\b", "none"),
+            (r'(?:==|!=|assert|,)\s*""', "empty_string"),
+            (r"(?:==|!=|assert|,)\s*\[\]", "empty_list"),
+            (r"(?:==|!=|assert|,)\s*\{\}", "empty_dict"),
+            (r"float\(['\"]inf['\"]\)", "infinity"),
+            (r"sys\.maxsize", "max_int"),
+            (r"\.MIN\b", "minimum"),
+            (r"\.MAX\b", "maximum"),
+        ]
+        for pattern, value_type in boundary_patterns:
+            if re.search(pattern, func_source):
+                indicators["boundary_values"].append(value_type)
+
+        if indicators["boundary_values"]:
+            indicators["patterns"].append("boundary_values")
+            indicators["is_edge_case"] = True
+
+        # 3. Detect negative assertions (checking for false/failure conditions)
+        negative_patterns = [
+            r"assertFalse",
+            r"assertIsNone",
+            r"assertNotEqual",
+            r"assertNotIn",
+            r"assert\s+not\s+",
+            r"assert\s+.*\s+is\s+None",
+            r"assert\s+.*\s+!=",
+        ]
+        for pattern in negative_patterns:
+            if re.search(pattern, func_source):
+                indicators["negative_assertions"] = True
+                indicators["patterns"].append("negative_assertions")
+                indicators["is_edge_case"] = True
+                break
+
+        # 4. Detect error condition tests (by naming and content)
+        error_keywords = [
+            r"invalid",
+            r"error",
+            r"fail",
+            r"exception",
+            r"wrong",
+            r"bad",
+            r"missing",
+            r"empty",
+            r"null",
+            r"overflow",
+            r"underflow",
+        ]
+        func_name_lower = func_name.lower()
+        for keyword in error_keywords:
+            if re.search(keyword, func_name_lower) or re.search(
+                keyword, func_source, re.IGNORECASE
+            ):
+                indicators["error_condition"] = True
+                indicators["patterns"].append("error_condition")
+                indicators["is_edge_case"] = True
+                break
+
+        # 5. Detect regression tests
+        regression_keywords = [r"regression", r"fix", r"bug", r"issue"]
+        for keyword in regression_keywords:
+            if re.search(keyword, func_name_lower):
+                indicators["is_regression"] = True
+                indicators["patterns"].append("regression")
+                indicators["is_edge_case"] = True
+                break
+
+        # 6. Detect parametrized tests (multiple scenarios)
+        parametrize_patterns = [
+            r"@pytest\.mark\.parametrize",
+            r"@parameterized",
+        ]
+        for pattern in parametrize_patterns:
+            # Check decorators before function
+            pre_func_lines = content.split("\n")[
+                max(0, func_node.lineno - 10) : func_node.lineno - 1
+            ]
+            pre_func_source = "\n".join(pre_func_lines)
+            if re.search(pattern, pre_func_source):
+                indicators["is_parametrized"] = True
+                indicators["patterns"].append("parametrized")
+                # Parametrized tests often cover edge cases
+                indicators["is_edge_case"] = True
+                break
+
+        return indicators
+
     def track_production_functions(
         self, file_path: Path, module_name: str, content: str
     ) -> None:
@@ -527,6 +759,18 @@ class TestAnalyzer:
                 self.results["integration_test_functions"] / total_tests
             ) * 100
 
+        # Calculate edge case coverage percentage
+        total_edge = self.results["edge_case_analysis"]["total_edge_case_tests"]
+        total_happy = self.results["edge_case_analysis"]["total_happy_path_tests"]
+        total_all_tests = total_edge + total_happy
+
+        if total_all_tests > 0:
+            self.results["edge_case_analysis"]["edge_case_percentage"] = (
+                total_edge / total_all_tests
+            ) * 100
+        else:
+            self.results["edge_case_analysis"]["edge_case_percentage"] = 0.0
+
         # Calculate testability score
         total_with_logic = self.results["testability"][
             "functions_with_business_logic"
@@ -542,7 +786,7 @@ class TestAnalyzer:
         else:
             self.results["testability"]["testability_score"] = 100.0
 
-        # Calculate module testability scores
+        # Calculate module testability scores and edge case percentages
         for module_name, module_stats in self.results["by_module"].items():
             # Simple score based on test presence and type
             unit_tests = module_stats["unit_tests"]
@@ -555,6 +799,18 @@ class TestAnalyzer:
                 ) * 100
             else:
                 module_stats["testability_score"] = 0.0
+
+            # Calculate module edge case percentage
+            module_edge = module_stats["edge_case_tests"]
+            module_happy = module_stats["happy_path_tests"]
+            module_total = module_edge + module_happy
+
+            if module_total > 0:
+                module_stats["edge_case_percentage"] = (
+                    module_edge / module_total
+                ) * 100
+            else:
+                module_stats["edge_case_percentage"] = 0.0
 
         # Calculate function coverage (functions with corresponding tests)
         for module_name in self.results["by_module"].keys():
@@ -601,4 +857,9 @@ class TestAnalyzer:
             "untestable_functions": len(
                 self.results["testability"]["untestable_functions"]
             ),
+            "edge_case_percentage": round(
+                self.results["edge_case_analysis"]["edge_case_percentage"], 1
+            ),
+            "total_edge_case_tests": self.results["edge_case_analysis"]["total_edge_case_tests"],
+            "total_happy_path_tests": self.results["edge_case_analysis"]["total_happy_path_tests"],
         }

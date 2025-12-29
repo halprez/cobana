@@ -195,6 +195,42 @@ def get_file_stats(file_path: Path) -> dict[str, int]:
     }
 
 
+def find_tests_directory(root_path: Path | str) -> Path | None:
+    """Auto-detect the tests directory in a codebase.
+
+    Searches for common test directory names at the root level and one level deep.
+
+    Args:
+        root_path: Root directory of the codebase
+
+    Returns:
+        Path to tests directory if found, None otherwise
+    """
+    root = Path(root_path).resolve()
+
+    # Common test directory names (in order of preference)
+    test_dir_names = ["tests", "test", "testing", "spec", "specs", "__tests__"]
+
+    # First check root level
+    for name in test_dir_names:
+        test_dir = root / name
+        if test_dir.exists() and test_dir.is_dir():
+            logger.info(f"Auto-detected tests directory: {test_dir}")
+            return test_dir
+
+    # Then check one level deep (e.g., backend/tests)
+    for child_dir in root.iterdir():
+        if child_dir.is_dir():
+            for name in test_dir_names:
+                test_dir = child_dir / name
+                if test_dir.exists() and test_dir.is_dir():
+                    logger.info(f"Auto-detected tests directory: {test_dir}")
+                    return test_dir
+
+    logger.warning("Could not auto-detect tests directory")
+    return None
+
+
 def format_file_path(
     file_path: Path | str, root_path: Path | str, module_name: str = ""
 ) -> str:

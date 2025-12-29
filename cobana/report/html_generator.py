@@ -1203,6 +1203,114 @@ class HtmlReportGenerator:
         </div>
     </div>
 
+    {% if tests.edge_case_analysis %}
+    <h3 style="margin-top: 40px;">⚡ Edge Case & Error Path Testing</h3>
+    <div class="explanation-box">
+        <h4>Why Edge Case Testing Matters</h4>
+        <p><strong>Production systems rarely fail on happy paths.</strong> They fail when users enter unexpected input,
+        systems encounter boundary conditions, or external dependencies behave incorrectly.</p>
+
+        <p><strong>What is an edge case?</strong> Scenarios at the "edges" of normal operation:</p>
+        <ul>
+            <li><strong>Boundary values:</strong> 0, None, empty strings/arrays, maximum values</li>
+            <li><strong>Error conditions:</strong> Invalid input, missing data, failed operations</li>
+            <li><strong>Exception handling:</strong> Tests that verify errors are caught and handled gracefully</li>
+            <li><strong>Regression tests:</strong> Tests for previously fixed bugs to ensure they don't return</li>
+        </ul>
+
+        <p><strong>🔴 The danger of happy path-only testing:</strong></p>
+        <ul>
+            <li>100% code coverage doesn't mean 100% scenario coverage</li>
+            <li>Production failures occur in untested edge cases</li>
+            <li>Fixing production bugs costs 10-100x more than catching them in tests</li>
+            <li>Customer trust is damaged when "it worked in testing" doesn't prevent failures</li>
+        </ul>
+
+        <p><strong>Recommended target:</strong> ≥30% of tests should cover edge cases and error conditions.</p>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card {{ 'success' if tests.edge_case_analysis.edge_case_percentage >= 30 else 'warning' if tests.edge_case_analysis.edge_case_percentage >= 15 else 'danger' }}">
+            <h4>Edge Case Coverage</h4>
+            <div class="metric-value">{{ "%.1f"|format(tests.edge_case_analysis.edge_case_percentage or 0) }}%</div>
+            <div class="metric-label">Of total tests</div>
+        </div>
+        <div class="metric-card {{ 'success' if tests.edge_case_analysis.total_edge_case_tests > 0 else 'danger' }}">
+            <h4>Edge Case Tests</h4>
+            <div class="metric-value">{{ tests.edge_case_analysis.total_edge_case_tests or 0 }}</div>
+            <div class="metric-label">Exception, boundary, error tests</div>
+        </div>
+        <div class="metric-card {{ 'warning' if tests.edge_case_analysis.total_happy_path_tests > tests.edge_case_analysis.total_edge_case_tests * 2 else 'success' }}">
+            <h4>Happy Path Tests</h4>
+            <div class="metric-value">{{ tests.edge_case_analysis.total_happy_path_tests or 0 }}</div>
+            <div class="metric-label">Expected scenario tests</div>
+        </div>
+    </div>
+
+    <div class="metric-cards">
+        <div class="metric-card {{ 'success' if tests.edge_case_analysis.exception_handling_tests > 0 else 'warning' }}">
+            <h4>Exception Handling</h4>
+            <div class="metric-value">{{ tests.edge_case_analysis.exception_handling_tests or 0 }}</div>
+            <div class="metric-label">Tests with pytest.raises or assertRaises</div>
+        </div>
+        <div class="metric-card {{ 'success' if tests.edge_case_analysis.boundary_value_tests > 0 else 'warning' }}">
+            <h4>Boundary Values</h4>
+            <div class="metric-value">{{ tests.edge_case_analysis.boundary_value_tests or 0 }}</div>
+            <div class="metric-label">Tests with 0, None, empty, max values</div>
+        </div>
+        <div class="metric-card {{ 'success' if tests.edge_case_analysis.error_condition_tests > 0 else 'warning' }}">
+            <h4>Error Conditions</h4>
+            <div class="metric-value">{{ tests.edge_case_analysis.error_condition_tests or 0 }}</div>
+            <div class="metric-label">Tests for invalid/wrong/missing input</div>
+        </div>
+        <div class="metric-card {{ 'success' if tests.edge_case_analysis.regression_tests > 0 else 'info' }}">
+            <h4>Regression Tests</h4>
+            <div class="metric-value">{{ tests.edge_case_analysis.regression_tests or 0 }}</div>
+            <div class="metric-label">Tests for previously fixed bugs</div>
+        </div>
+    </div>
+
+    {% if tests.edge_case_analysis.edge_case_details %}
+    <details>
+        <summary>✅ Edge Case Tests Detected ({{ tests.edge_case_analysis.edge_case_details|length }})</summary>
+        <table>
+            <thead>
+                <tr>
+                    <th>Test Function</th>
+                    <th>Module</th>
+                    <th>File</th>
+                    <th>Line</th>
+                    <th>Patterns Detected</th>
+                    <th>Boundary Values</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for edge_test in tests.edge_case_analysis.edge_case_details %}
+                <tr data-module="{{ edge_test.get('module', '') }}">
+                    <td><code>{{ edge_test.function }}</code></td>
+                    <td><code>{{ edge_test.module }}</code></td>
+                    <td><code>{{ edge_test.file | highlight_module }}</code></td>
+                    <td>{{ edge_test.line }}</td>
+                    <td>
+                        {% for pattern in edge_test.patterns %}
+                        <span class="badge badge-info">{{ pattern.replace('_', ' ').title() }}</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if edge_test.boundary_values %}
+                            {{ edge_test.boundary_values | join(', ') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </details>
+    {% endif %}
+    {% endif %}
+
     {% if tests.by_module %}
     <details open>
         <summary>📊 Test Analysis by Module</summary>
@@ -1213,6 +1321,8 @@ class HtmlReportGenerator:
                     <th>Test Files</th>
                     <th>Unit Tests</th>
                     <th>Integration Tests</th>
+                    <th>Edge Cases</th>
+                    <th>Edge %</th>
                     <th>Total Tests</th>
                     <th>Unit %</th>
                 </tr>
@@ -1226,6 +1336,12 @@ class HtmlReportGenerator:
                     <td>{{ module_data.get('test_files', 0) }}</td>
                     <td>{{ module_data.get('unit_tests', 0) }}</td>
                     <td>{{ module_data.get('integration_tests', 0) }}</td>
+                    <td>{{ module_data.get('edge_case_tests', 0) }}</td>
+                    <td>
+                        <span class="badge {{ 'badge-success' if module_data.get('edge_case_percentage', 0) >= 30 else 'badge-warning' if module_data.get('edge_case_percentage', 0) >= 15 else 'badge-danger' }}">
+                            {{ "%.0f"|format(module_data.get('edge_case_percentage', 0)) }}%
+                        </span>
+                    </td>
                     <td><strong>{{ total_tests }}</strong></td>
                     <td>
                         <span class="badge {{ 'badge-success' if unit_pct >= 70 else 'badge-warning' if unit_pct >= 50 else 'badge-danger' }}">
