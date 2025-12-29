@@ -79,8 +79,13 @@ class FileScanner:
     def _should_include(self, file_path: Path) -> bool:
         """Check if file should be included in analysis.
 
-        Files under tests_dir are always included, even if they match exclude patterns.
+        Test files are always included, even if they match exclude patterns.
         This ensures test files are analyzed for test metrics.
+
+        A file is considered a test file if:
+        1. It's under the specified tests_dir, OR
+        2. Its filename starts with 'test_' or ends with '_test.py', OR
+        3. It's in a directory named 'test', 'tests', 'testing', etc.
 
         Args:
             file_path: Path to check
@@ -96,18 +101,7 @@ class FileScanner:
 
         rel_path_str = str(rel_path)
 
-        # Check if file is under tests directory
-        # If so, include it regardless of exclude patterns
-        is_under_tests_dir = False
-        if self.tests_dir:
-            try:
-                file_path.resolve().relative_to(self.tests_dir)
-                is_under_tests_dir = True
-            except ValueError:
-                # File is not under tests_dir
-                pass
-
-        # Check depth limit
+        # Check depth limit first
         if self.max_depth is not None:
             # Count folder depth from root
             # e.g., "file.py" = depth 1, "folder/file.py" = depth 2, "folder/sub/file.py" = depth 3
@@ -115,11 +109,37 @@ class FileScanner:
             if depth > self.max_depth:
                 return False
 
-        # If file is under tests_dir, include it (skip exclude pattern checks)
-        if is_under_tests_dir:
+        # Check if this is a test file using multiple heuristics
+        is_test_file = False
+
+        # 1. Check if file is under specified tests_dir
+        if self.tests_dir:
+            try:
+                file_path.resolve().relative_to(self.tests_dir)
+                is_test_file = True
+            except ValueError:
+                pass
+
+        # 2. Check filename patterns (test_*.py or *_test.py)
+        if not is_test_file:
+            name = file_path.name
+            if name.startswith("test_") or name.endswith("_test.py") or name == "conftest.py":
+                is_test_file = True
+
+        # 3. Check if in a test directory (test/, tests/, testing/, spec/, etc.)
+        if not is_test_file:
+            path_parts = file_path.parts
+            test_dir_names = {"test", "tests", "testing", "spec", "specs", "__tests__"}
+            if any(part in test_dir_names for part in path_parts):
+                # If in test directory and is a Python file, it's a test file
+                if name.endswith(".py") and not name.startswith("__"):
+                    is_test_file = True
+
+        # If it's a test file, include it (skip exclude pattern checks)
+        if is_test_file:
             return True
 
-        # Check against exclude patterns
+        # For non-test files, check against exclude patterns
         for pattern in self.exclude_patterns:
             if fnmatch.fnmatch(rel_path_str, pattern):
                 return False
