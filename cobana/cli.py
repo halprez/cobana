@@ -276,7 +276,13 @@ def print_summary(results: dict) -> None:
     print()
 
     # Tests
+    tests = results.get('tests', {})
+    total_test_files = tests.get('total_test_files', 0)
+    total_test_functions = tests.get('total_test_functions', 0)
+
     print("Tests:")
+    print(f"  Test Files Found: {total_test_files}")
+    print(f"  Test Functions Found: {total_test_functions}")
     print(f"  Unit Tests: {summary.get('unit_percentage', 0):.1f}%")
     print(f"  Integration Tests: {summary.get('integration_percentage', 0):.1f}%")
     print(f"  Testability Score: {summary.get('testability_score', 0):.1f}%")
