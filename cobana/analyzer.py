@@ -344,10 +344,15 @@ class CodebaseAnalyzer:
 
     def _build_results(self) -> None:
         """Build final results structure."""
+        # Use folder name as service name if not provided
+        service_name = self.config.get("service_name", "unknown")
+        if service_name == "unknown":
+            service_name = self.root_path.name
+
         self.results = {
             "metadata": {
                 "codebase_path": str(self.root_path),
-                "service_name": self.config.get("service_name", "unknown"),
+                "service_name": service_name,
                 "total_files_analyzed": self.scanner.files_scanned,
                 "total_files_skipped": self.scanner.files_skipped,
                 "module_count": len(self.modules),

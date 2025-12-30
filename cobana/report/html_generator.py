@@ -175,27 +175,35 @@ class HtmlReportGenerator:
         return Path(codebase_path) if codebase_path else Path.cwd()
 
     def _format_file_path(self, file_path: str, module_name: str = "") -> str:
-        """Format file path as relative to codebase root.
+        """Format file path as relative to codebase parent folder.
 
         Args:
             file_path: Absolute file path
             module_name: Module name for context
 
         Returns:
-            Relative path string
+            Relative path string from parent folder
         """
         try:
             abs_path = Path(file_path).resolve()
             root_path = self._get_root_path()
-            rel_path = abs_path.relative_to(root_path)
+            # Use parent folder as base for relative paths
+            parent_path = root_path.parent
+            rel_path = abs_path.relative_to(parent_path)
             return str(rel_path)
         except (ValueError, TypeError):
-            # If path is not relative to root, return as-is
-            return (
-                str(file_path)
-                .replace(str(self._get_root_path()), "")
-                .lstrip("/")
-            )
+            # If path is not relative to parent, try root, then return as-is
+            try:
+                root_path = self._get_root_path()
+                abs_path = Path(file_path).resolve()
+                rel_path = abs_path.relative_to(root_path)
+                return str(rel_path)
+            except (ValueError, TypeError):
+                return (
+                    str(file_path)
+                    .replace(str(self._get_root_path()), "")
+                    .lstrip("/")
+                )
 
     def _extract_module_from_path(self, file_path: str) -> str:
         """Extract module name from file path.
